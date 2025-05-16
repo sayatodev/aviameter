@@ -1,103 +1,112 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+
+function calculateMeanSpeed(positions: GeolocationPosition[]): number {
+    if (!positions || positions.length < 2) {
+        return 0; // Need at least 2 positions to calculate speed
+    }
+
+    // Calculate speeds between consecutive positions
+    const speeds: number[] = [];
+
+    for (let i = 1; i < positions.length; i++) {
+        const prevPos = positions[i - 1];
+        const currPos = positions[i];
+
+        // Calculate distance between points using Haversine formula
+        const distance = calculateHaversineDistance(
+            prevPos.coords.latitude,
+            prevPos.coords.longitude,
+            currPos.coords.latitude,
+            currPos.coords.longitude
+        );
+
+        // Calculate time difference in seconds
+        const timeDiff = (currPos.timestamp - prevPos.timestamp) / 1000;
+
+        if (timeDiff > 0) {
+            // Speed in meters per second
+            const speed = distance / timeDiff;
+            speeds.push(speed);
+        }
+    }
+
+    // Calculate mean speed
+    if (speeds.length === 0) {
+        return 0;
+    }
+
+    const totalSpeed = speeds.reduce((sum, speed) => sum + speed, 0);
+    return totalSpeed / speeds.length;
+}
+
+function calculateHaversineDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+): number {
+    const R = 6371000; // Earth radius in meters
+    const phi1 = (lat1 * Math.PI) / 180;
+    const phi2 = (lat2 * Math.PI) / 180;
+    const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+    const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+        Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+        Math.cos(phi1) *
+            Math.cos(phi2) *
+            Math.sin(deltaLambda / 2) *
+            Math.sin(deltaLambda / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // Distance in meters
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    const [running, setRunning] = useState(false);
+    const [position, setPosition] = useState<GeolocationPosition | null>(null);
+    const [recentPositions, setRecentPositions] = useState<
+        GeolocationPosition[]
+    >([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (running) {
+                const recent = recentPositions;
+                while (recent.length > 5) recent.shift();
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        setPosition(pos);
+                        setRecentPositions([...recent, pos]);
+                        console.log(
+                            pos.coords.latitude,
+                            pos.coords.longitude,
+                            pos.timestamp
+                        );
+                    },
+                    () => {
+                        throw new Error("Failed to get location");
+                    }
+                );
+            }
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }, [position, running, recentPositions]);
+
+    return (
+        <div className="flex flex-col gap-2 justify-center align-middle w-full h-full">
+            <button className="bg-gray-200" onClick={() => setRunning(true)}>
+                Start
+            </button>
+            <div className="flex flex-col gap-2 min-w-0 w-fit mx-auto min-w-[20vw]">
+                <div>lat: {position?.coords.latitude}</div>
+                <div>long: {position?.coords.longitude}</div>
+                <div>alt: {position?.coords.altitude}</div>
+                <div>spd: {calculateMeanSpeed(recentPositions)}</div>
+                <div>timestamp: {position?.timestamp}</div>
+            </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }
