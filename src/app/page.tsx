@@ -116,6 +116,17 @@ export default function Home() {
 
     const { data: airportsData } = useSWR(`/airports.json`, airportsFetcher);
 
+    // Register Service Worker
+    useEffect(() => {
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker
+                .register("/sw.js")
+                .then((registration) =>
+                    console.log("scope is: ", registration.scope)
+                );
+        }
+    }, []);
+
     useEffect(() => {
         const timeout = setTimeout(() => {
             if (running) {

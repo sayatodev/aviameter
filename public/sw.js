@@ -1,28 +1,26 @@
-const cacheName = "aviameter-v0";
-const appShellFiles = ["/", "/airports.json"]
+const cacheName = "aviameter-v1";
 
-self.addEventListener("install", (e) => {
-    console.log("[sw] install");
-    e.waitUntil(
-        (async()=> {
-            const cache = await cache.open(cacheName);
-            console.log("[sw] Caching all: app shell and content");
-            await cache.addAll(appShellFiles)
-        })
-    )
+self.addEventListener("install", () => {
+    console.log("service worker installed");
 });
 
-self.addEventListener("activate", (e) => {
-  e.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(
-        keyList.map((key) => {
-          if (key === cacheName) {
-            return;
-          }
-          return caches.delete(key);
-        }),
-      );
-    }),
-  );
+self.addEventListener("activate", () => {
+    console.log("service worker activated");
+});
+
+const cacheClone = async (e) => {
+    const res = await fetch(e.request);
+    const resClone = res.clone();
+
+    const cache = await caches.open(cacheName);
+    await cache.put(e.request, resClone);
+    return res;
+};
+
+self.addEventListener("fetch", (e) => {
+    e.respondWith(
+        cacheClone(e)
+            .catch(() => caches.match(e.request))
+            .then((res) => res)
+    );
 });
