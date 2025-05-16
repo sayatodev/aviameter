@@ -189,7 +189,7 @@ export default function Home() {
                 {/*m to ft*/}
                 <div>alt: {(position?.coords.altitude ?? 0) * 3.28084} ft</div>
 
-                <h3 className="text-center border-b-1 border-black">Vectors</h3>
+                <h3 className="text-center border-b-1 border-black">Rates</h3>
                 <div>spd: {calculateMeanSpeed(recentPositions)} kts</div>
                 <div>v/s: {calculateMeanVertSpeed(recentPositions)} fpm</div>
 
@@ -210,7 +210,9 @@ export default function Home() {
                             </div>
                             <span>{nearestAirport?.data?.name}</span>
                         </div>
-                        <span className="-mt-2">Distance: {nearestAirport?.distance.toFixed(3)} nm</span>
+                        <span className="-mt-2">
+                            Distance: {nearestAirport?.distance.toFixed(3)} nm
+                        </span>
                     </>
                 )}
             </div>
