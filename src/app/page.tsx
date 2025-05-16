@@ -148,14 +148,6 @@ export default function Home() {
                                     ),
                                 }));
 
-                            console.warn(
-                                airportDistanceMap.sort(
-                                    (a, b) => a.distance - b.distance
-                                )
-                            );
-                            console.warn(
-                                airportDistanceMap.find((i) => i.iata == "HKG")
-                            );
                             setNearestAirport({
                                 data: airportsData.find(
                                     (i) => i.iata === airportDistanceMap[0].iata
