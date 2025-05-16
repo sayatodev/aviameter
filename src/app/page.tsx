@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 
 function calculateMeanSpeed(positions: GeolocationPosition[]): number {
     if (!positions || positions.length < 2) {
-        return 0; // Need at least 2 positions to calculate speed
+        return 0;
     }
 
-    // Calculate speeds between consecutive positions
     const speeds: number[] = [];
 
+    // Calculate speeds between consecutive positions
     for (let i = 1; i < positions.length; i++) {
         const prevPos = positions[i - 1];
         const currPos = positions[i];
@@ -18,8 +18,8 @@ function calculateMeanSpeed(positions: GeolocationPosition[]): number {
         const distance = calculateHaversineDistance(
             prevPos.coords.latitude,
             prevPos.coords.longitude,
-            currPos.coords.latitude,
-            currPos.coords.longitude
+            prevPos.coords.latitude,
+            prevPos.coords.longitude
         );
 
         // Calculate time difference in seconds
@@ -36,9 +36,8 @@ function calculateMeanSpeed(positions: GeolocationPosition[]): number {
     if (speeds.length === 0) {
         return 0;
     }
-
     const totalSpeed = speeds.reduce((sum, speed) => sum + speed, 0);
-    return totalSpeed / speeds.length;
+    return (totalSpeed / speeds.length) * 1.94384; // m/s to kts
 }
 
 function calculateHaversineDistance(
@@ -64,6 +63,41 @@ function calculateHaversineDistance(
     return R * c; // Distance in meters
 }
 
+function calculateMeanVertSpeed(positions: GeolocationPosition[]): number {
+    if (!positions || positions.length < 2) {
+        return 0;
+    }
+
+    const vertSpeeds: number[] = [];
+
+    for (let i = 1; i < positions.length; i++) {
+        const prevPos = positions[i - 1];
+        const currPos = positions[i];
+
+        if (!currPos.coords.altitude || !prevPos.coords.altitude) {
+            vertSpeeds.push(0);
+            continue;
+        }
+        const altDiff = currPos.coords.altitude - prevPos.coords.altitude;
+
+        // Calculate time difference in seconds
+        const timeDiff = (currPos.timestamp - prevPos.timestamp) / 1000;
+
+        if (timeDiff > 0) {
+            // v/s in meters per second
+            const vertSpeed = altDiff / timeDiff;
+            vertSpeeds.push(vertSpeed);
+        }
+    }
+
+    // Calculate mean v/s
+    if (vertSpeeds.length === 0) {
+        return 0;
+    }
+    const totalSpeed = vertSpeeds.reduce((sum, speed) => sum + speed, 0);
+    return (totalSpeed / vertSpeeds.length) * 196.850394; // m/s to fpm
+}
+
 export default function Home() {
     const [running, setRunning] = useState(false);
     const [position, setPosition] = useState<GeolocationPosition | null>(null);
@@ -75,7 +109,7 @@ export default function Home() {
         const timeout = setTimeout(() => {
             if (running) {
                 const recent = recentPositions;
-                while (recent.length > 5) recent.shift();
+                while (recent.length > 3) recent.shift();
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         setPosition(pos);
@@ -100,11 +134,12 @@ export default function Home() {
             <button className="bg-gray-200" onClick={() => setRunning(true)}>
                 Start
             </button>
-            <div className="flex flex-col gap-2 min-w-0 w-fit mx-auto min-w-[20vw]">
+            <div className="flex flex-col gap-2 w-fit mx-auto min-w-[20vw]">
                 <div>lat: {position?.coords.latitude}</div>
                 <div>long: {position?.coords.longitude}</div>
                 <div>alt: {position?.coords.altitude}</div>
-                <div>spd: {calculateMeanSpeed(recentPositions)}</div>
+                <div>spd: {calculateMeanSpeed(recentPositions)} kts</div>
+                <div>v/s: {calculateMeanVertSpeed(recentPositions)} fpm</div>
                 <div>timestamp: {position?.timestamp}</div>
             </div>
         </div>
