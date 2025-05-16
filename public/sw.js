@@ -1,5 +1,5 @@
 const cacheName = "aviameter-v0";
-const appShellFiles = ["/"]
+const appShellFiles = ["/", "/airports.json"]
 
 self.addEventListener("install", (e) => {
     console.log("[sw] install");

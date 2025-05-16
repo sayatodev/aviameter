@@ -1,6 +1,9 @@
 "use client";
-
+import useSWR, { Fetcher } from "swr";
 import { useEffect, useState } from "react";
+
+const airportsFetcher: Fetcher<Airport[], string> = (...args) =>
+    fetch(...args).then((res) => res.json());
 
 function calculateMeanSpeed(positions: GeolocationPosition[]): number {
     if (!positions || positions.length < 2) {
@@ -100,10 +103,16 @@ function calculateMeanVertSpeed(positions: GeolocationPosition[]): number {
 
 export default function Home() {
     const [running, setRunning] = useState(false);
-    const [position, setPosition] = useState<GeolocationPosition | null>(null);
+    const [position, setPosition] = useState<GeolocationPosition>();
     const [recentPositions, setRecentPositions] = useState<
         GeolocationPosition[]
     >([]);
+    const [nearestAirport, setNearestAirport] = useState<{
+        data?: Airport;
+        distance: number;
+    }>();
+
+    const { data: airportsData } = useSWR(`/airports.json`, airportsFetcher);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -119,6 +128,43 @@ export default function Home() {
                             pos.coords.longitude,
                             pos.timestamp
                         );
+
+                        // closest airport
+                        if (airportsData) {
+                            const airportDistanceMap = airportsData
+                                .filter(
+                                    (i) =>
+                                        i.status > 0 &&
+                                        !isNaN(Number(i.lat)) &&
+                                        !isNaN(Number(i.lon))
+                                )
+                                .map((item) => ({
+                                    iata: item.iata,
+                                    distance: calculateHaversineDistance(
+                                        Number(item.lat),
+                                        Number(item.lon),
+                                        pos.coords.latitude,
+                                        pos.coords.longitude
+                                    ),
+                                }));
+
+                            console.warn(
+                                airportDistanceMap.sort(
+                                    (a, b) => a.distance - b.distance
+                                )
+                            );
+                            console.warn(
+                                airportDistanceMap.find((i) => i.iata == "HKG")
+                            );
+                            setNearestAirport({
+                                data: airportsData.find(
+                                    (i) => i.iata === airportDistanceMap[0].iata
+                                ),
+                                distance:
+                                    airportDistanceMap[0].distance *
+                                    0.000539957, // nm
+                            });
+                        }
                     },
                     () => {
                         throw new Error("Failed to get location");
@@ -135,12 +181,38 @@ export default function Home() {
                 Start
             </button>
             <div className="flex flex-col gap-2 w-fit mx-auto min-w-[20vw]">
+                <h3 className="text-center border-b-1 border-black">
+                    Coordinates
+                </h3>
                 <div>lat: {position?.coords.latitude}</div>
                 <div>long: {position?.coords.longitude}</div>
-                <div>alt: {position?.coords.altitude}</div>
+                {/*m to ft*/}
+                <div>alt: {(position?.coords.altitude ?? 0) * 3.28084} ft</div>
+
+                <h3 className="text-center border-b-1 border-black">Vectors</h3>
                 <div>spd: {calculateMeanSpeed(recentPositions)} kts</div>
                 <div>v/s: {calculateMeanVertSpeed(recentPositions)} fpm</div>
-                <div>timestamp: {position?.timestamp}</div>
+
+                <h3 className="text-center border-b-1 border-black">Time</h3>
+                <div>
+                    GPS Time:{" "}
+                    {position?.timestamp &&
+                        new Date(position?.timestamp).toLocaleTimeString()}
+                </div>
+                {nearestAirport && (
+                    <>
+                        <h3 className="text-center border-b-1 border-black">
+                            Nearest Field
+                        </h3>
+                        <div className="flex gap-2">
+                            <div className="bg-gray-500 rounded-full text-white px-2 my-auto text-xs h-[1.5em] mt-1">
+                                {nearestAirport?.data?.iata}
+                            </div>
+                            <span>{nearestAirport?.data?.name}</span>
+                        </div>
+                        <span className="-mt-2">Distance: {nearestAirport?.distance.toFixed(3)} nm</span>
+                    </>
+                )}
             </div>
         </div>
     );
