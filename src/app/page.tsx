@@ -21,8 +21,8 @@ function calculateMeanSpeed(positions: GeolocationPosition[]): number {
         const distance = calculateHaversineDistance(
             prevPos.coords.latitude,
             prevPos.coords.longitude,
-            prevPos.coords.latitude,
-            prevPos.coords.longitude
+            currPos.coords.latitude,
+            currPos.coords.longitude
         );
 
         // Calculate time difference in seconds
@@ -32,6 +32,8 @@ function calculateMeanSpeed(positions: GeolocationPosition[]): number {
             // Speed in meters per second
             const speed = distance / timeDiff;
             speeds.push(speed);
+        } else {
+            speeds.push(0)
         }
     }
 
@@ -118,16 +120,11 @@ export default function Home() {
         const timeout = setTimeout(() => {
             if (running) {
                 const recent = recentPositions;
-                while (recent.length > 3) recent.shift();
+                while (recent.length > 5) recent.shift();
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         setPosition(pos);
                         setRecentPositions([...recent, pos]);
-                        console.log(
-                            pos.coords.latitude,
-                            pos.coords.longitude,
-                            pos.timestamp
-                        );
 
                         // closest airport
                         if (airportsData) {
@@ -165,7 +162,7 @@ export default function Home() {
             }
         }, 1000);
         return () => clearTimeout(timeout);
-    }, [position, running, recentPositions]);
+    });
 
     return (
         <div className="flex flex-col gap-2 justify-center align-middle w-full h-full">
