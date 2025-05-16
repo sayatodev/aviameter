@@ -33,7 +33,7 @@ function calculateMeanSpeed(positions: GeolocationPosition[]): number {
             const speed = distance / timeDiff;
             speeds.push(speed);
         } else {
-            speeds.push(0)
+            speeds.push(0);
         }
     }
 
@@ -143,8 +143,8 @@ export default function Home() {
                                         pos.coords.latitude,
                                         pos.coords.longitude
                                     ),
-                                }));
-
+                                }))
+                                .sort((a, b) => a.distance - b.distance);
                             setNearestAirport({
                                 data: airportsData.find(
                                     (i) => i.iata === airportDistanceMap[0].iata
