@@ -1,10 +1,17 @@
 "use client";
 import useSWR, { Fetcher } from "swr";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Snackbar } from "@mui/material";
+import dynamic from "next/dynamic";
+import Link from "next/link";
 
 const airportsFetcher: Fetcher<Airport[], string> = (...args) =>
     fetch(...args).then((res) => res.json());
+const airportIsValid = (airport: Airport) =>
+    airport.status > 0 &&
+    !isNaN(Number(airport.lat)) &&
+    !isNaN(Number(airport.lon));
+const airportIsSized = (airport: Airport) => airport.size === "large";
 
 function calculateMeanSpeed(positions: GeolocationPosition[]): number {
     if (!positions || positions.length < 2) {
@@ -117,7 +124,17 @@ export default function Home() {
 
     // Feedback states
     const [gpsErrored, setGpsErrored] = useState(false);
-    const [swLoaded, setSwLoaded] = useState(false);
+    const [swAlertOpen, setSwAlertOpen] = useState(false);
+
+    // Leaflet component loading (For SSR Compatibility)
+    const Map = useMemo(
+        () =>
+            dynamic(() => import("@/app/components/Map"), {
+                loading: () => <p>A map is loading</p>,
+                ssr: false,
+            }),
+        [],
+    );
 
     const { data: airportsData } = useSWR(`/airports.json`, airportsFetcher);
 
@@ -126,7 +143,7 @@ export default function Home() {
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("/sw.js").then((registration) => {
                 console.log("scope is: ", registration.scope);
-                setSwLoaded(true);
+                setSwAlertOpen(true);
             });
         }
     }, []);
@@ -144,12 +161,7 @@ export default function Home() {
                         // closest airport
                         if (airportsData) {
                             const airportDistanceMap = airportsData
-                                .filter(
-                                    (i) =>
-                                        i.status > 0 &&
-                                        !isNaN(Number(i.lat)) &&
-                                        !isNaN(Number(i.lon)),
-                                )
+                                .filter(airportIsValid)
                                 .map((item) => ({
                                     iata: item.iata,
                                     distance: calculateHaversineDistance(
@@ -185,14 +197,14 @@ export default function Home() {
     });
 
     return (
-        <div className="flex flex-col gap-2 justify-center align-middle w-full h-full">
+        <div className="overflow-x-hidden flex flex-col gap-2 justify-center align-middle w-full h-full">
             <button
                 className="bg-gray-200 hover:bg-gray-300 py-1"
                 onClick={() => setRunning(!running)}
             >
                 {running ? "Pause" : "Start"}
             </button>
-            <div className="flex flex-col gap-2 w-fit mx-auto min-w-[20vw] md:px-2 px-5">
+            <div className="flex flex-col gap-2 w-fit mx-auto min-w-[20vw] md:px-10 px-3">
                 {gpsErrored && (
                     <Alert variant="outlined" severity="error">
                         Failed to load GPS data
@@ -204,11 +216,19 @@ export default function Home() {
                 <div>lat: {position?.coords.latitude}</div>
                 <div>long: {position?.coords.longitude}</div>
                 {/*m to ft*/}
-                <div>alt: {(position?.coords.altitude ?? 0) * 3.28084} ft</div>
+                <div>
+                    alt:&nbsp;
+                    {((position?.coords.altitude ?? 0) * 3.28084).toFixed(2)} ft
+                </div>
 
                 <h3 className="text-center border-b-1 border-black">Rates</h3>
-                <div>spd: {calculateMeanSpeed(recentPositions)} kts</div>
-                <div>v/s: {calculateMeanVertSpeed(recentPositions)} fpm</div>
+                <div>
+                    spd: {calculateMeanSpeed(recentPositions).toFixed(2)} kts
+                </div>
+                <div>
+                    v/s: {calculateMeanVertSpeed(recentPositions).toFixed(2)}{" "}
+                    fpm
+                </div>
 
                 <h3 className="text-center border-b-1 border-black">Time</h3>
                 <div>
@@ -232,7 +252,11 @@ export default function Home() {
                         </span>
                     </>
                 )}
-                <Snackbar open={swLoaded}>
+                <Snackbar
+                    open={swAlertOpen}
+                    autoHideDuration={6000}
+                    onClose={() => setSwAlertOpen(false)}
+                >
                     <Alert
                         variant="outlined"
                         severity="success"
@@ -242,6 +266,32 @@ export default function Home() {
                         used offline.
                     </Alert>
                 </Snackbar>
+
+                <h3 className="text-center border-b-1 border-black">Map</h3>
+
+                {/*running and gps initialized*/}
+                {running && (gpsErrored || position) ? (
+                    <div className="w-[100vw] -mx-[50px] max-w-[768px] h-[90vh] overflow-hidden">
+                        <Map
+                            currentCoords={position?.coords}
+                            displayLocation={!gpsErrored}
+                            airports={
+                                airportsData
+                                    ?.filter(airportIsValid)
+                                    .filter(airportIsSized) ?? []
+                            }
+                        />
+                    </div>
+                ) : (
+                    <p className="text-center mb-10">Press start to show map</p>
+                )}
+
+                <h3 className="text-center border-b-1 mt-2 border-gray"></h3>
+                <footer className="text-center mb-2">
+                    <Link href="https://github.com/sayatodev/aviameter">
+                        View source on Github
+                    </Link>
+                </footer>
             </div>
         </div>
     );
