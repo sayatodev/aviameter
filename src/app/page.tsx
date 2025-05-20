@@ -1,6 +1,7 @@
 "use client";
 import useSWR, { Fetcher } from "swr";
 import { useEffect, useState } from "react";
+import { Alert, Snackbar } from "@mui/material";
 
 const airportsFetcher: Fetcher<Airport[], string> = (...args) =>
     fetch(...args).then((res) => res.json());
@@ -22,7 +23,7 @@ function calculateMeanSpeed(positions: GeolocationPosition[]): number {
             prevPos.coords.latitude,
             prevPos.coords.longitude,
             currPos.coords.latitude,
-            currPos.coords.longitude
+            currPos.coords.longitude,
         );
 
         // Calculate time difference in seconds
@@ -49,7 +50,7 @@ function calculateHaversineDistance(
     lat1: number,
     lon1: number,
     lat2: number,
-    lon2: number
+    lon2: number,
 ): number {
     const R = 6371000; // Earth radius in meters
     const phi1 = (lat1 * Math.PI) / 180;
@@ -114,16 +115,19 @@ export default function Home() {
         distance: number;
     }>();
 
+    // Feedback states
+    const [gpsErrored, setGpsErrored] = useState(false);
+    const [swLoaded, setSwLoaded] = useState(false);
+
     const { data: airportsData } = useSWR(`/airports.json`, airportsFetcher);
 
     // Register Service Worker
     useEffect(() => {
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker
-                .register("/sw.js")
-                .then((registration) =>
-                    console.log("scope is: ", registration.scope)
-                );
+            navigator.serviceWorker.register("/sw.js").then((registration) => {
+                console.log("scope is: ", registration.scope);
+                setSwLoaded(true);
+            });
         }
     }, []);
 
@@ -144,7 +148,7 @@ export default function Home() {
                                     (i) =>
                                         i.status > 0 &&
                                         !isNaN(Number(i.lat)) &&
-                                        !isNaN(Number(i.lon))
+                                        !isNaN(Number(i.lon)),
                                 )
                                 .map((item) => ({
                                     iata: item.iata,
@@ -152,23 +156,28 @@ export default function Home() {
                                         Number(item.lat),
                                         Number(item.lon),
                                         pos.coords.latitude,
-                                        pos.coords.longitude
+                                        pos.coords.longitude,
                                     ),
                                 }))
                                 .sort((a, b) => a.distance - b.distance);
                             setNearestAirport({
                                 data: airportsData.find(
-                                    (i) => i.iata === airportDistanceMap[0].iata
+                                    (i) =>
+                                        i.iata === airportDistanceMap[0].iata,
                                 ),
                                 distance:
                                     airportDistanceMap[0].distance *
                                     0.000539957, // nm
                             });
                         }
+
+                        setGpsErrored(false);
                     },
-                    () => {
-                        throw new Error("Failed to get location");
-                    }
+
+                    (/* error */) => {
+                        setGpsErrored(true);
+                        setRunning(false);
+                    },
                 );
             }
         }, 1000);
@@ -177,10 +186,18 @@ export default function Home() {
 
     return (
         <div className="flex flex-col gap-2 justify-center align-middle w-full h-full">
-            <button className="bg-gray-200" onClick={() => setRunning(true)}>
-                Start
+            <button
+                className="bg-gray-200 hover:bg-gray-300 py-1"
+                onClick={() => setRunning(!running)}
+            >
+                {running ? "Pause" : "Start"}
             </button>
-            <div className="flex flex-col gap-2 w-fit mx-auto min-w-[20vw]">
+            <div className="flex flex-col gap-2 w-fit mx-auto min-w-[20vw] md:px-2 px-5">
+                {gpsErrored && (
+                    <Alert variant="outlined" severity="error">
+                        Failed to load GPS data
+                    </Alert>
+                )}
                 <h3 className="text-center border-b-1 border-black">
                     Coordinates
                 </h3>
@@ -195,7 +212,7 @@ export default function Home() {
 
                 <h3 className="text-center border-b-1 border-black">Time</h3>
                 <div>
-                    GPS Time:{" "}
+                    GPS Time:&nbsp;
                     {position?.timestamp &&
                         new Date(position?.timestamp).toLocaleTimeString()}
                 </div>
@@ -214,6 +231,18 @@ export default function Home() {
                             Distance: {nearestAirport?.distance.toFixed(3)} nm
                         </span>
                     </>
+                )}
+                {swLoaded && (
+                    <Snackbar>
+                        <Alert
+                            variant="outlined"
+                            severity="success"
+                            className="mt-5"
+                        >
+                            This website&apos;s data has been downloaded and can
+                            be used offline.
+                        </Alert>
+                    </Snackbar>
                 )}
             </div>
         </div>
