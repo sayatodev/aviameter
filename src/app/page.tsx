@@ -232,18 +232,16 @@ export default function Home() {
                         </span>
                     </>
                 )}
-                {swLoaded && (
-                    <Snackbar>
-                        <Alert
-                            variant="outlined"
-                            severity="success"
-                            className="mt-5"
-                        >
-                            This website&apos;s data has been downloaded and can
-                            be used offline.
-                        </Alert>
-                    </Snackbar>
-                )}
+                <Snackbar open={swLoaded}>
+                    <Alert
+                        variant="outlined"
+                        severity="success"
+                        className="mt-5"
+                    >
+                        This website&apos;s data has been downloaded and can be
+                        used offline.
+                    </Alert>
+                </Snackbar>
             </div>
         </div>
     );
