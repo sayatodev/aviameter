@@ -1,0 +1,23 @@
+.navBar {
+    --start-button-size: 75px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: grid;
+    grid-template-columns:
+        [nav-start] 1fr [nav-ctr-start] var(--start-button-size)
+        [nav-ctr-end] 1fr [nav-end];
+    z-index: 10;
+    height: 50px;
+}
+
+.startButton {
+    grid-column-start: nav-ctr-start;
+    grid-column-end: nav-ctr-end;
+    border-radius: 50%;
+    width: var(--start-button-size);
+    height: var(--start-button-size);
+    margin-top: calc(60px - var(--start-button-size));
+    box-shadow: 0px 0px 4px white;
+}

@@ -4,6 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert, Snackbar } from "@mui/material";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import styles from "./page.module.css";
+import { ConfigModal } from "./components/ConfigModal";
+import {
+    calculateHaversineDistance,
+    calculateMeanSpeed,
+    calculateMeanVertSpeed,
+} from "./utils/math";
+import { Pause, PlayArrow } from "@mui/icons-material";
 
 const airportsFetcher: Fetcher<Airport[], string> = (...args) =>
     fetch(...args).then((res) => res.json());
@@ -12,104 +20,6 @@ const airportIsValid = (airport: Airport) =>
     !isNaN(Number(airport.lat)) &&
     !isNaN(Number(airport.lon));
 const airportIsSized = (airport: Airport) => airport.size === "large";
-
-function calculateMeanSpeed(positions: GeolocationPosition[]): number {
-    if (!positions || positions.length < 2) {
-        return 0;
-    }
-
-    const speeds: number[] = [];
-
-    // Calculate speeds between consecutive positions
-    for (let i = 1; i < positions.length; i++) {
-        const prevPos = positions[i - 1];
-        const currPos = positions[i];
-
-        // Calculate distance between points using Haversine formula
-        const distance = calculateHaversineDistance(
-            prevPos.coords.latitude,
-            prevPos.coords.longitude,
-            currPos.coords.latitude,
-            currPos.coords.longitude,
-        );
-
-        // Calculate time difference in seconds
-        const timeDiff = (currPos.timestamp - prevPos.timestamp) / 1000;
-
-        if (timeDiff > 0) {
-            // Speed in meters per second
-            const speed = distance / timeDiff;
-            speeds.push(speed);
-        } else {
-            speeds.push(0);
-        }
-    }
-
-    // Calculate mean speed
-    if (speeds.length === 0) {
-        return 0;
-    }
-    const totalSpeed = speeds.reduce((sum, speed) => sum + speed, 0);
-    return (totalSpeed / speeds.length) * 1.94384; // m/s to kts
-}
-
-function calculateHaversineDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-): number {
-    const R = 6371000; // Earth radius in meters
-    const phi1 = (lat1 * Math.PI) / 180;
-    const phi2 = (lat2 * Math.PI) / 180;
-    const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
-    const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
-
-    const a =
-        Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-        Math.cos(phi1) *
-            Math.cos(phi2) *
-            Math.sin(deltaLambda / 2) *
-            Math.sin(deltaLambda / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // Distance in meters
-}
-
-function calculateMeanVertSpeed(positions: GeolocationPosition[]): number {
-    if (!positions || positions.length < 2) {
-        return 0;
-    }
-
-    const vertSpeeds: number[] = [];
-
-    for (let i = 1; i < positions.length; i++) {
-        const prevPos = positions[i - 1];
-        const currPos = positions[i];
-
-        if (!currPos.coords.altitude || !prevPos.coords.altitude) {
-            vertSpeeds.push(0);
-            continue;
-        }
-        const altDiff = currPos.coords.altitude - prevPos.coords.altitude;
-
-        // Calculate time difference in seconds
-        const timeDiff = (currPos.timestamp - prevPos.timestamp) / 1000;
-
-        if (timeDiff > 0) {
-            // v/s in meters per second
-            const vertSpeed = altDiff / timeDiff;
-            vertSpeeds.push(vertSpeed);
-        }
-    }
-
-    // Calculate mean v/s
-    if (vertSpeeds.length === 0) {
-        return 0;
-    }
-    const totalSpeed = vertSpeeds.reduce((sum, speed) => sum + speed, 0);
-    return (totalSpeed / vertSpeeds.length) * 196.850394; // m/s to fpm
-}
 
 export default function Home() {
     const [running, setRunning] = useState(false);
@@ -121,10 +31,17 @@ export default function Home() {
         data?: Airport;
         distance: number;
     }>();
+    const [config, setConfig] = useState<AviameterConfig>({
+        depatureAirport: "",
+        arrivalAirport: "",
+        trackPoints: [],
+        mapOverlayShown: false,
+    });
 
     // Feedback states
     const [gpsErrored, setGpsErrored] = useState(false);
     const [swAlertOpen, setSwAlertOpen] = useState(false);
+    const [configModalOpen, setConfigModalOpen] = useState(false);
 
     // Leaflet component loading (For SSR Compatibility)
     const Map = useMemo(
@@ -198,12 +115,6 @@ export default function Home() {
 
     return (
         <div className="overflow-x-hidden flex flex-col gap-2 justify-center align-middle w-full h-full">
-            <button
-                className="bg-gray-200 hover:bg-gray-300 py-1"
-                onClick={() => setRunning(!running)}
-            >
-                {running ? "Pause" : "Start"}
-            </button>
             <div className="flex flex-col gap-2 w-fit mx-auto min-w-[20vw] md:px-10 px-3">
                 {gpsErrored && (
                     <Alert variant="outlined" severity="error">
@@ -252,20 +163,6 @@ export default function Home() {
                         </span>
                     </>
                 )}
-                <Snackbar
-                    open={swAlertOpen}
-                    autoHideDuration={6000}
-                    onClose={() => setSwAlertOpen(false)}
-                >
-                    <Alert
-                        variant="outlined"
-                        severity="success"
-                        className="mt-5"
-                    >
-                        This website&apos;s data has been downloaded and can be
-                        used offline.
-                    </Alert>
-                </Snackbar>
 
                 <h3 className="text-center border-b-1 border-black">Map</h3>
 
@@ -275,11 +172,18 @@ export default function Home() {
                         <Map
                             currentCoords={position?.coords}
                             displayLocation={!gpsErrored}
+                            config={config}
                             airports={
                                 airportsData
                                     ?.filter(airportIsValid)
                                     .filter(airportIsSized) ?? []
                             }
+                            overlayData={{
+                                speed: calculateMeanSpeed(recentPositions),
+                                altitude: position?.coords.altitude ?? 0,
+                                verticalSpeed:
+                                    calculateMeanVertSpeed(recentPositions),
+                            }}
                         />
                     </div>
                 ) : (
@@ -292,6 +196,51 @@ export default function Home() {
                         View source on Github
                     </Link>
                 </footer>
+
+                {/* Modals / Alerts */}
+                <Snackbar
+                    open={swAlertOpen}
+                    autoHideDuration={6000}
+                    onClose={() => setSwAlertOpen(false)}
+                    className="translate-y-[-50px]"
+                >
+                    <Alert
+                        variant="outlined"
+                        severity="success"
+                        className="mt-5"
+                    >
+                        This website&apos;s data has been downloaded and can be
+                        used offline.
+                    </Alert>
+                </Snackbar>
+
+                <ConfigModal
+                    open={configModalOpen}
+                    onClose={() => setConfigModalOpen(false)}
+                    onUpdate={setConfig}
+                />
+            </div>
+
+            {/* Navigation Bar */}
+            <div
+                className={`bg-neutral-700 text-neutral-50 text-xl ${styles.navBar}`}
+            >
+                <button onClick={() => setConfigModalOpen(true)}>
+                    <p className="pb-2">Config</p>
+                </button>
+                <button
+                    className={`bg-neutral-700 hover:bg-neutral-800 py-1 ${styles.startButton}`}
+                    onClick={() => setRunning(!running)}
+                >
+                    {running ? (
+                        <Pause sx={{ fontSize: 36 }} />
+                    ) : (
+                        <PlayArrow sx={{ fontSize: 36 }} />
+                    )}
+                </button>
+                <button disabled onClick={() => setConfigModalOpen(true)}>
+                    <p className="pb-2 text-gray-300">Guide</p>
+                </button>
             </div>
         </div>
     );
