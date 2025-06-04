@@ -15,6 +15,7 @@ const geojsonFetcher: Fetcher<GeoJSONProps["data"], string> = (...args) =>
     fetch(...args).then((res) => res.json());
 
 interface IMapProps {
+    hidden?: boolean;
     currentCoords?: GeolocationCoordinates;
     displayLocation: boolean;
     airports: Airport[];
@@ -29,6 +30,9 @@ interface IMapProps {
 export default function Map(props: IMapProps) {
     const { data: worldData } = useSWR("/planet.geo.json", geojsonFetcher);
 
+    if (props.hidden) {
+        return <></>;
+    }
     const currentLat = props.currentCoords?.latitude ?? 0;
     const currentLong = props.currentCoords?.longitude ?? 0;
 
@@ -55,6 +59,12 @@ export default function Map(props: IMapProps) {
                         <p className="text-sm font-semibold">ALT</p>
                         <span className="text-lg">
                             {props.overlayData.altitude.toFixed(1)} ft
+                        </span>
+                    </div>
+                    <div className="flex flex-col text-white justify-center items-center">
+                        <p className="text-sm font-semibold">V/S</p>
+                        <span className="text-lg">
+                            {props.overlayData.verticalSpeed.toFixed(1)} fpm
                         </span>
                     </div>
                 </div>

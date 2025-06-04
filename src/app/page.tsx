@@ -167,28 +167,25 @@ export default function Home() {
                 <h3 className="text-center border-b-1 border-black">Map</h3>
 
                 {/*running and gps initialized*/}
-                {running && (gpsErrored || position) ? (
-                    <div className="w-[100vw] -mx-[50px] max-w-[768px] h-[90vh] overflow-hidden">
-                        <Map
-                            currentCoords={position?.coords}
-                            displayLocation={!gpsErrored}
-                            config={config}
-                            airports={
-                                airportsData
-                                    ?.filter(airportIsValid)
-                                    .filter(airportIsSized) ?? []
-                            }
-                            overlayData={{
-                                speed: calculateMeanSpeed(recentPositions),
-                                altitude: position?.coords.altitude ?? 0,
-                                verticalSpeed:
-                                    calculateMeanVertSpeed(recentPositions),
-                            }}
-                        />
-                    </div>
-                ) : (
-                    <p className="text-center mb-10">Press start to show map</p>
-                )}
+                <div className="w-[100vw] -mx-[50px] max-w-[768px] h-[90vh] overflow-hidden">
+                    <Map
+                        hidden={!running || (!gpsErrored && !position)}
+                        currentCoords={position?.coords}
+                        displayLocation={!gpsErrored}
+                        config={config}
+                        airports={
+                            airportsData
+                                ?.filter(airportIsValid)
+                                .filter(airportIsSized) ?? []
+                        }
+                        overlayData={{
+                            speed: calculateMeanSpeed(recentPositions),
+                            altitude: position?.coords.altitude ?? 0,
+                            verticalSpeed:
+                                calculateMeanVertSpeed(recentPositions),
+                        }}
+                    />
+                </div>
 
                 <h3 className="text-center border-b-1 mt-2 border-gray"></h3>
                 <footer className="text-center mb-15">
