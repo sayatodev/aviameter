@@ -1,4 +1,4 @@
-const cacheName = "aviameter-v1.1-dev20250604";
+const cacheName = "aviameter-v1.1-dev20250604-2";
 
 self.addEventListener("install", () => {
     console.log("service worker installed");
@@ -26,7 +26,11 @@ self.addEventListener("fetch", (e) => {
     try {
         e.respondWith(
             cacheClone(e)
-                .catch(() => caches.match(e.request))
+                .catch(() =>
+                    caches.open(cacheName).then((cache) => {
+                        return cache.match(e.request);
+                    }),
+                )
                 .then((res) => res),
         );
     } catch (error) {
