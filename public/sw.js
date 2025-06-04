@@ -18,6 +18,7 @@ const cacheClone = async (e) => {
         return res;
     } catch (error) {
         console.error(`[sw] Failed to fetch`, e, error);
+        throw error;
     }
 };
 

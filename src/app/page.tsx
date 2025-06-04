@@ -191,7 +191,7 @@ export default function Home() {
                 )}
 
                 <h3 className="text-center border-b-1 mt-2 border-gray"></h3>
-                <footer className="text-center mb-2">
+                <footer className="text-center mb-15">
                     <Link href="https://github.com/sayatodev/aviameter">
                         View source on Github
                     </Link>
