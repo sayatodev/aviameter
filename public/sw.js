@@ -1,4 +1,4 @@
-const cacheName = "aviameter-v1.2";
+const cacheName = "aviameter-v1.2.1";
 
 self.addEventListener("install", () => {
     console.log("service worker installed");
