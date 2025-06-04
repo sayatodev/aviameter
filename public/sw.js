@@ -37,3 +37,25 @@ self.addEventListener("fetch", (e) => {
         console.error(`[sw] Failed to create cache clone`, e, error);
     }
 });
+
+self.addEventListener("activate", function (event) {
+    event.waitUntil(
+        caches
+            .keys()
+            .then(function (cacheNames) {
+                return Promise.all(
+                    cacheNames.map(function (cacheName) {
+                        return caches.delete(cacheName);
+                    }),
+                );
+            })
+            .then(() => {
+                // refresh the page after activation
+                return self.clients.matchAll().then((clients) => {
+                    clients.forEach((client) => {
+                        client.navigate(client.url);
+                    });
+                });
+            }),
+    );
+});
