@@ -10,8 +10,11 @@ import {
     calculateHaversineDistance,
     calculateMeanSpeed,
     calculateMeanVertSpeed,
+    estimateTimeOfArrival,
 } from "./utils/math";
 import { Pause, PlayArrow } from "@mui/icons-material";
+import FlightPathStore from "./utils/flightPathStore";
+import "./utils/devtools";
 
 const airportsFetcher: Fetcher<Airport[], string> = (...args) =>
     fetch(...args).then((res) => res.json());
@@ -20,6 +23,8 @@ const airportIsValid = (airport: Airport) =>
     !isNaN(Number(airport.lat)) &&
     !isNaN(Number(airport.lon));
 const airportIsSized = (airport: Airport) => airport.size === "large";
+
+const flightPathStore = new FlightPathStore(localStorage);
 
 export default function Home() {
     const [running, setRunning] = useState(false);
@@ -37,6 +42,9 @@ export default function Home() {
         trackPoints: [],
         mapOverlayShown: false,
     });
+    const [flightPath, setFlightPath] = useState<FlightPath>({
+        trackPoints: [],
+    });
 
     // Feedback states
     const [gpsErrored, setGpsErrored] = useState(false);
@@ -47,13 +55,31 @@ export default function Home() {
     const Map = useMemo(
         () =>
             dynamic(() => import("@/app/components/Map"), {
-                loading: () => <p>A map is loading</p>,
+                loading: () => <p>Loading Map Data...</p>,
                 ssr: false,
             }),
         [],
     );
 
     const { data: airportsData } = useSWR(`/airports.json`, airportsFetcher);
+
+    // Load flight path from local storage
+    useEffect(() => {
+        const storedFlightPath = flightPathStore.getFlightPath();
+        setFlightPath(storedFlightPath);
+    }, []);
+
+    // Update flight track point
+    useEffect(() => {
+        if (!position || !running) return;
+        flightPathStore.addTrackPoint({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+            alt: position.coords.altitude ?? 0,
+            timestamp: position.timestamp,
+        });
+        setFlightPath(flightPathStore.getFlightPath());
+    }, [position, running]);
 
     // Register Service Worker
     useEffect(() => {
@@ -113,6 +139,11 @@ export default function Home() {
         return () => clearTimeout(timeout);
     });
 
+    const clearFlightPathData = () => {
+        flightPathStore.clearFlightPath();
+        setFlightPath({ trackPoints: [] });
+    };
+
     return (
         <div className="overflow-x-hidden flex flex-col gap-2 justify-center align-middle w-full h-full">
             <div className="flex flex-col gap-2 w-fit mx-auto min-w-[20vw] md:px-10 px-3">
@@ -147,6 +178,27 @@ export default function Home() {
                     {position?.timestamp &&
                         new Date(position?.timestamp).toLocaleTimeString()}
                 </div>
+                <div>
+                    Estimated Time of Arrival:&nbsp;
+                    {config.trackPoints.length > 0 ? (
+                        (estimateTimeOfArrival(
+                            flightPath.trackPoints,
+                            config.trackPoints,
+                        )?.toLocaleTimeString() ?? (
+                            <>
+                                N/A
+                                <br />
+                                (Available above 1000 ft)
+                            </>
+                        ))
+                    ) : (
+                        <>
+                            N/A
+                            <br />
+                            (Load a past flight track first)
+                        </>
+                    )}
+                </div>
                 {nearestAirport && (
                     <>
                         <h3 className="text-center border-b-1 border-black">
@@ -165,11 +217,24 @@ export default function Home() {
                 )}
 
                 <h3 className="text-center border-b-1 border-black">Map</h3>
+                <div className="flex gap-4 justify-center">
+                    <button
+                        className="text-blue-500"
+                        onClick={clearFlightPathData}
+                    >
+                        Clear Flight Path
+                    </button>
+                    <button
+                        className="text-blue-500"
+                        onClick={() => flightPathStore.exportJSON()}
+                    >
+                        Export Flight Path
+                    </button>
+                </div>
 
-                {/*running and gps initialized*/}
                 <div className="w-[100vw] -mx-[50px] max-w-[768px] h-[90vh] overflow-hidden">
                     <Map
-                        hidden={!running || (!gpsErrored && !position)}
+                        hidden={!running || (!gpsErrored && !position)} // Hide map if not running or GPS errored
                         currentCoords={position?.coords}
                         displayLocation={!gpsErrored}
                         config={config}
@@ -184,6 +249,7 @@ export default function Home() {
                             verticalSpeed:
                                 calculateMeanVertSpeed(recentPositions),
                         }}
+                        flightPath={flightPath}
                     />
                 </div>
 
@@ -235,8 +301,10 @@ export default function Home() {
                         <PlayArrow sx={{ fontSize: 36 }} />
                     )}
                 </button>
-                <button disabled onClick={() => setConfigModalOpen(true)}>
-                    <p className="pb-2 text-gray-300">Guide</p>
+                <button>
+                    <Link href="/guide">
+                        <p className="pb-2 text-neutral-50">Guide</p>
+                    </Link>
                 </button>
             </div>
         </div>

@@ -35,6 +35,7 @@ export class KMLParser {
             throw new Error("No valid coordinates found in gx:Track");
         }
 
+        console.log("Parsed positions:", positions);
         return positions;
     }
 }

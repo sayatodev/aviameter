@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import useSWR, { Fetcher } from "swr";
 import {
     MapContainer,
@@ -17,6 +16,7 @@ const geojsonFetcher: Fetcher<GeoJSONProps["data"], string> = (...args) =>
 interface IMapProps {
     hidden?: boolean;
     currentCoords?: GeolocationCoordinates;
+    currentTimestamp?: number;
     displayLocation: boolean;
     airports: Airport[];
     config: AviameterConfig;
@@ -25,11 +25,15 @@ interface IMapProps {
         altitude: number;
         verticalSpeed: number;
     };
+    flightPath: FlightPath;
 }
 
 export default function Map(props: IMapProps) {
     const { data: worldData } = useSWR("/planet.geo.json", geojsonFetcher);
 
+
+
+    // If the map is hidden, return an empty fragment
     if (props.hidden) {
         return <></>;
     }
@@ -58,7 +62,7 @@ export default function Map(props: IMapProps) {
                     <div className="flex flex-col text-white justify-center items-center">
                         <p className="text-sm font-semibold">ALT</p>
                         <span className="text-lg">
-                            {props.overlayData.altitude.toFixed(1)} ft
+                            {(props.overlayData.altitude * 3.28084).toFixed(1)} ft
                         </span>
                     </div>
                     <div className="flex flex-col text-white justify-center items-center">
@@ -113,7 +117,15 @@ export default function Map(props: IMapProps) {
                     point.lat,
                     point.lon,
                 ])}
-                pathOptions={{ color: "blue", weight: 2 }}
+                pathOptions={{ color: "gray", weight: 2 }}
+            />
+
+            <Polyline
+                positions={props.flightPath.trackPoints.map((point) => [
+                    point.lat,
+                    point.lon,
+                ])}
+                pathOptions={{ color: "blue", weight: 1, dashArray: "5,5" }}
             />
         </MapContainer>
     ) : (

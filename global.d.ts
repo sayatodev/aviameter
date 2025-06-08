@@ -23,3 +23,7 @@ type TrackPoint = {
     alt: number;
     timestamp: number;
 };
+
+type FlightPath = {
+    trackPoints: Array<TrackPoint>;
+};
