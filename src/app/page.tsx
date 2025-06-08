@@ -14,7 +14,6 @@ import {
 } from "./utils/math";
 import { Pause, PlayArrow } from "@mui/icons-material";
 import FlightPathStore from "./utils/flightPathStore";
-import "./utils/devtools";
 
 const airportsFetcher: Fetcher<Airport[], string> = (...args) =>
     fetch(...args).then((res) => res.json());
@@ -24,7 +23,7 @@ const airportIsValid = (airport: Airport) =>
     !isNaN(Number(airport.lon));
 const airportIsSized = (airport: Airport) => airport.size === "large";
 
-const flightPathStore = new FlightPathStore(localStorage);
+const flightPathStore = new FlightPathStore();
 
 export default function Home() {
     const [running, setRunning] = useState(false);
@@ -62,6 +61,11 @@ export default function Home() {
     );
 
     const { data: airportsData } = useSWR(`/airports.json`, airportsFetcher);
+
+    // Initialize flight path store
+    useEffect(() => {
+        flightPathStore.setStorage(localStorage);
+    }, []);
 
     // Load flight path from local storage
     useEffect(() => {

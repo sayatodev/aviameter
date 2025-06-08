@@ -1,11 +1,16 @@
 export default class FlightPathStore {
-    storage: Storage;
+    storage?: Storage;
 
-    constructor(storage: Storage) {
+    constructor() {}
+
+    setStorage(storage: Storage): void {
         this.storage = storage;
     }
 
     getFlightPath(): FlightPath {
+        if (!this.storage) {
+            throw new Error("Storage not set. Call setStorage() first.");
+        }
         const flightPath = this.storage.getItem("flightPath");
         if (flightPath) {
             return JSON.parse(flightPath);
@@ -14,12 +19,18 @@ export default class FlightPathStore {
     }
 
     addTrackPoint(point: TrackPoint): void {
+        if (!this.storage) {
+            throw new Error("Storage not set. Call setStorage() first.");
+        }
         const flightPath = this.getFlightPath();
         flightPath.trackPoints.push(point);
         this.storage.setItem("flightPath", JSON.stringify(flightPath));
     }
 
     clearFlightPath(): void {
+        if (!this.storage) {
+            throw new Error("Storage not set. Call setStorage() first.");
+        }
         this.storage.removeItem("flightPath");
     }
 
