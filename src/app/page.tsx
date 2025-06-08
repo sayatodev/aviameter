@@ -192,7 +192,7 @@ export default function Home() {
                             <>
                                 N/A
                                 <br />
-                                (Available above 1000 ft)
+                                (Available above 5000 ft)
                             </>
                         ))
                     ) : (
