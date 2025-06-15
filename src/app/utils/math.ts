@@ -133,13 +133,38 @@ function getNearestPoint(
     return nearestPoint;
 }
 
-function getDistance(point1: TrackPoint, point2: TrackPoint): number {
+function getDistance(point1: Point, point2: Point): number {
     return calculateHaversineDistance(
         point1.lat,
         point1.lon,
         point2.lat,
         point2.lon,
     );
+}
+
+function projectPointOnSegment(
+    point: TrackPoint,
+    segmentStart: TrackPoint,
+    segmentEnd: TrackPoint,
+): { lat: number; lon: number } {
+    const dx = segmentEnd.lon - segmentStart.lon;
+    const dy = segmentEnd.lat - segmentStart.lat;
+
+    const t =
+        ((point.lon - segmentStart.lon) * dx +
+            (point.lat - segmentStart.lat) * dy) /
+        (dx * dx + dy * dy);
+
+    if (t < 0) {
+        return segmentStart; // Before the start of the segment
+    } else if (t > 1) {
+        return segmentEnd; // After the end of the segment
+    }
+
+    return {
+        lat: segmentStart.lat + t * dy,
+        lon: segmentStart.lon + t * dx,
+    };
 }
 
 export function estimateTimeOfArrival(
@@ -160,63 +185,73 @@ export function estimateTimeOfArrival(
     }
 
     const startPoint = midTrack[0];
-    const endPoint = midTrack[midTrack.length - 1];
+    const currentPoint = midTrack[midTrack.length - 1];
     const refStartPoint = getNearestPoint(midRefTrack, startPoint);
-    const refEndPoint = getNearestPoint(midRefTrack, endPoint);
-    if (!refStartPoint || !refEndPoint) {
+    const refClosestPoint = getNearestPoint(midRefTrack, currentPoint);
+    if (!refStartPoint || !refClosestPoint) {
         console.warn("Could not find reference points for estimation");
         return null;
     }
 
-    const refEndPointIndex = midRefTrack.indexOf(refEndPoint);
+    const refClosestIndex = midRefTrack.indexOf(refClosestPoint);
     const refLandPoint = referenceTrack[referenceTrack.length - 1];
 
-    // Calculating progress between two nearest reference points (Call it "current segment")
-    const refEndPrevPoint = midRefTrack[refEndPointIndex - 1];
-    const refEndNextPoint = midRefTrack[refEndPointIndex + 1];
-    if (!refEndPrevPoint || !refEndNextPoint) {
+    // Getting nearest reference points
+    const refPrevPoint = midRefTrack[refClosestIndex - 1];
+    const refNextPoint = midRefTrack[refClosestIndex + 1];
+    if (!refPrevPoint || !refNextPoint) {
         console.warn("Reference end point has no previous or next point");
         return null;
     }
 
-    let currentSegmentRemainingTime: 0;
-    const distToPrev = getDistance(refEndPrevPoint, endPoint);
-    const distToEnd = getDistance(refEndPoint, endPoint);
-    const distToNext = getDistance(refEndNextPoint, endPoint);
-    if (distToPrev < distToNext) {
-        /* Status: DEP -- [REF_END_PREV] -- [CURRENT] -- [REF_END] --> ARR */
-        const segmentTime = refEndPoint.timestamp - refEndPrevPoint.timestamp;
-        currentSegmentRemainingTime =
-            (distToEnd / (distToPrev + distToEnd)) * segmentTime;
-    } else {
-        /* Status: DEP -- [REF_END] -- [CURRENT] -- [REF_END_NEXT] --> ARR */
-        const segmentTime = refEndNextPoint.timestamp - refEndPoint.timestamp;
-        currentSegmentRemainingTime =
-            (distToNext / (distToEnd + distToNext)) * segmentTime;
-    }
+    // Calculate current segment (PREV->END->NEXT)
+    const projectionOnSegment = projectPointOnSegment(
+        currentPoint,
+        refPrevPoint,
+        refNextPoint,
+    );
+    const segmentTimeLength = refNextPoint.timestamp - refPrevPoint.timestamp;
+    const segmentDistance = getDistance(refPrevPoint, refNextPoint);
+
+    const currentSegmentProgress =
+        getDistance(projectionOnSegment, refPrevPoint) / segmentDistance;
+    const currentSegmentRemainingTimeBase =
+        segmentTimeLength * (1 - currentSegmentProgress);
 
     // Main estimation
-    const actualTime = endPoint.timestamp - startPoint.timestamp;
-    const refTime = refEndPoint.timestamp - refStartPoint.timestamp;
-    const factor = actualTime / refTime;
+    const actualTimePast = currentPoint.timestamp - startPoint.timestamp;
+    const estStartToPrev =
+        actualTimePast - segmentTimeLength * currentSegmentProgress; // Estimated time from start to previous point, by current segment progress
+    const refStartToPrev = refPrevPoint.timestamp - refStartPoint.timestamp;
+    const factor = estStartToPrev / refStartToPrev;
 
-    const refRemainingTime = refLandPoint.timestamp - refEndPoint.timestamp;
+    const remainingTimeBase =
+        refLandPoint.timestamp - refClosestPoint.timestamp;
     const estimatedTime = new Date(
-        endPoint.timestamp +
-            (refRemainingTime + currentSegmentRemainingTime) * factor,
+        currentPoint.timestamp +
+            (remainingTimeBase + currentSegmentRemainingTimeBase) * factor,
     );
+    
+    // console.debug(
+    //     `estStartToPrev: ${estStartToPrev} seconds\n`,
+    //     `refStartToPrev: ${refStartToPrev} seconds\n`,
+    //     `Reference start point: ${refStartPoint.lat}, ${refStartPoint.lon}\n`,
+    //     `Reference previous point: ${refPrevPoint.lat}, ${refPrevPoint.lon}\n`,
+    //     `Reference closest point: ${refClosestPoint.lat}, ${refClosestPoint.lon}\n`,
+    //     `Reference next point: ${refNextPoint.lat}, ${refNextPoint.lon}\n`,
+    //     `Current point: ${currentPoint.lat}, ${currentPoint.lon}\n`,
+    //     `Reference end point: ${refLandPoint.lat}, ${refLandPoint.lon}\n`,
+    //     `Factor: ${factor}\n`,
+    //     `Current segment: ${Math.floor((currentSegmentRemainingTimeBase * factor) / 1000)} more seconds\n`,
+    //     `Main component: ${Math.floor((remainingTimeBase * factor) / 1000)} more seconds\n`,
+    // );
 
     if (isNaN(estimatedTime.getTime())) {
         console.warn("Estimated time is invalid");
         return null;
     }
-    // if (estimatedTime < new Date()) {
-    //     console.warn("Estimated time is in the past");
-    //     return null;
-    // }
 
-    console.log(
-        `Estimated time of arrival: ${estimatedTime.toISOString()} (factor: ${factor})`,
-    );
+    // console.debug(`ETA: ${estimatedTime.toISOString()}\n`);
+
     return estimatedTime;
 }

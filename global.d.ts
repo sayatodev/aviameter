@@ -24,6 +24,11 @@ type TrackPoint = {
     timestamp: number;
 };
 
+type Point = {
+    lat: number;
+    lon: number;
+};
+
 type FlightPath = {
     trackPoints: Array<TrackPoint>;
 };
