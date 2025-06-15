@@ -288,6 +288,7 @@ export default function Home() {
 
                 {config && (
                     <ConfigModal
+                        airports={airportsData ?? []}
                         config={config}
                         open={configModalOpen}
                         onClose={() => setConfigModalOpen(false)}

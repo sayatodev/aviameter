@@ -1,8 +1,14 @@
-import { type ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { KMLParser } from "../utils/kmlParser";
-import { Switch, TextField } from "@mui/material";
+import {
+    Autocomplete,
+    createFilterOptions,
+    Switch,
+    TextField,
+} from "@mui/material";
 
 export interface IConfigModalProps {
+    airports: Airport[];
     config: AviameterConfig;
     open: boolean;
     onClose: () => void;
@@ -10,22 +16,24 @@ export interface IConfigModalProps {
 }
 
 export function ConfigModal(props: IConfigModalProps) {
-    const { onUpdate, config } = props;
+    const { airports, onUpdate, config } = props;
     const [inputData, setInputData] = useState<AviameterConfig>(config);
+
+    const airportCandidates = useMemo(() => {
+        return airports.map((airport) => ({
+            value: airport.iata,
+            label: airport.name,
+        }));
+    }, [airports]);
+    const airportFilterOptions = createFilterOptions({
+        limit: 10,
+        stringify: (option: (typeof airportCandidates)[number]) =>
+            `${option.value} ${option.label}`,
+    });
 
     useEffect(() => {
         onUpdate(inputData);
     }, [inputData, onUpdate]);
-
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement>,
-        field: keyof AviameterConfig,
-    ) => {
-        setInputData({
-            ...inputData,
-            [field]: e.target.value.trim().toUpperCase(),
-        });
-    };
 
     return props.open ? (
         <div className="z-20 fixed inset-0 flex items-center justify-center p-3">
@@ -38,23 +46,61 @@ export function ConfigModal(props: IConfigModalProps) {
 
                 <h3 className="text-lg font-semibold mb-2">Flight Route</h3>
                 <div className="flex items-center mb-4 gap-2">
-                    <TextField
-                        label="Departure Airport"
-                        variant="outlined"
-                        value={config.departureAirport}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            handleInputChange(e, "departureAirport")
-                        }
+                    <Autocomplete
                         className="flex-1"
+                        options={airportCandidates}
+                        getOptionLabel={(option) =>
+                            `${option.value} - ${option.label}`
+                        }
+                        filterOptions={airportFilterOptions}
+                        value={
+                            airportCandidates.find(
+                                (a) => a.value === config.departureAirport,
+                            ) || null
+                        }
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Departure Airport"
+                                variant="outlined"
+                            />
+                        )}
+                        renderValue={(option) => option?.value || ""}
+                        onChange={(event, newValue) => {
+                            setInputData({
+                                ...inputData,
+                                departureAirport: newValue
+                                    ? newValue.value
+                                    : "",
+                            });
+                        }}
                     />
-                    <TextField
-                        label="Arrival Airport"
-                        variant="outlined"
-                        value={config.arrivalAirport}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            handleInputChange(e, "arrivalAirport")
+                    <Autocomplete
+                        className="flex-1 text-nowrap"
+                        options={airportCandidates}
+                        getOptionLabel={(option) =>
+                            `${option.value} - ${option.label}`
                         }
-                        className="flex-1"
+                        filterOptions={airportFilterOptions}
+                        value={
+                            airportCandidates.find(
+                                (a) => a.value === config.arrivalAirport,
+                            ) || null
+                        }
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Arrival Airport"
+                                variant="outlined"
+                            />
+                        )}
+                        renderValue={(option) => option?.value || ""}
+                        onChange={(event, newValue) => {
+                            setInputData({
+                                ...inputData,
+                                arrivalAirport: newValue ? newValue.value : "",
+                            });
+                        }}
                     />
                 </div>
 
