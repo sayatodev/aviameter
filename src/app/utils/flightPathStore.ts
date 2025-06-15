@@ -42,6 +42,16 @@ export default class FlightPathStore {
 
         const blob = new Blob([flightPath], { type: "application/json" });
         const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
+
+        const dateStr = new Date().toISOString();
+        const formattedDate = dateStr.replace(/[-:]/g, "").slice(0, 13) + "Z"; // YYYYMMDD + "T" + HHMM + "Z"
+
+        // Download the file
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `flightPath_${formattedDate}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 }
