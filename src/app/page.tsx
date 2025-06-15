@@ -228,13 +228,13 @@ export default function Home() {
                 <h3 className="text-center border-b-1 border-black">Map</h3>
                 <div className="flex gap-4 justify-center">
                     <button
-                        className="text-blue-500"
+                        className="text-blue-500 cursor-pointer"
                         onClick={clearFlightPathData}
                     >
                         Clear Flight Path
                     </button>
                     <button
-                        className="text-blue-500"
+                        className="text-blue-500 cursor-pointer"
                         onClick={() => flightPathStore.exportJSON()}
                     >
                         Export Flight Path
