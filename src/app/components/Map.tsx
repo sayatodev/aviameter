@@ -19,7 +19,7 @@ interface IMapProps {
     currentTimestamp?: number;
     displayLocation: boolean;
     airports: Airport[];
-    config: AviameterConfig;
+    config?: AviameterConfig;
     overlayData: {
         speed: number;
         altitude: number;
@@ -31,14 +31,20 @@ interface IMapProps {
 export default function Map(props: IMapProps) {
     const { data: worldData } = useSWR("/planet.geo.json", geojsonFetcher);
 
-
-
     // If the map is hidden, return an empty fragment
     if (props.hidden) {
         return <></>;
     }
     const currentLat = props.currentCoords?.latitude ?? 0;
     const currentLong = props.currentCoords?.longitude ?? 0;
+
+    // Config
+    const config = props.config ?? {
+        departureAirport: "",
+        arrivalAirport: "",
+        trackPoints: [],
+        mapOverlayShown: false,
+    };
 
     return worldData ? (
         <MapContainer
@@ -51,7 +57,7 @@ export default function Map(props: IMapProps) {
             zoom={4}
             attributionControl={false}
         >
-            {props.config.mapOverlayShown && (
+            {config.mapOverlayShown && (
                 <div className="z-25 left-0 top-0 absolute m-5 bg-gray-800 opacity-70 p-3 flex gap-3">
                     <div className="flex flex-col text-white justify-center items-center">
                         <p className="text-sm font-semibold">SPD</p>
@@ -62,7 +68,8 @@ export default function Map(props: IMapProps) {
                     <div className="flex flex-col text-white justify-center items-center">
                         <p className="text-sm font-semibold">ALT</p>
                         <span className="text-lg">
-                            {(props.overlayData.altitude * 3.28084).toFixed(1)} ft
+                            {(props.overlayData.altitude * 3.28084).toFixed(1)}{" "}
+                            ft
                         </span>
                     </div>
                     <div className="flex flex-col text-white justify-center items-center">
@@ -90,11 +97,11 @@ export default function Map(props: IMapProps) {
             {props.airports.map((airport) => {
                 let color = "gray";
                 let radius = 2;
-                if (airport.iata === props.config.arrivalAirport) {
+                if (airport.iata === config.arrivalAirport) {
                     color = "green";
                     radius = 6;
                 }
-                if (airport.iata === props.config.departureAirport) {
+                if (airport.iata === config.departureAirport) {
                     color = "red";
                     radius = 6;
                 }
@@ -113,7 +120,7 @@ export default function Map(props: IMapProps) {
             })}
 
             <Polyline
-                positions={props.config.trackPoints.map((point) => [
+                positions={config.trackPoints.map((point) => [
                     point.lat,
                     point.lon,
                 ])}

@@ -3,29 +3,26 @@ import { KMLParser } from "../utils/kmlParser";
 import { Switch, TextField } from "@mui/material";
 
 export interface IConfigModalProps {
+    config: AviameterConfig;
     open: boolean;
     onClose: () => void;
     onUpdate: (config: AviameterConfig) => void;
 }
 
 export function ConfigModal(props: IConfigModalProps) {
-    const [config, setConfig] = useState<AviameterConfig>({
-        departureAirport: "",
-        arrivalAirport: "",
-        trackPoints: [],
-        mapOverlayShown: false,
-    });
+    const { onUpdate, config } = props;
+    const [inputData, setInputData] = useState<AviameterConfig>(config);
 
     useEffect(() => {
-        props.onUpdate(config);
-    }, [config, props]);
+        onUpdate(inputData);
+    }, [inputData, onUpdate]);
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         field: keyof AviameterConfig,
     ) => {
-        setConfig({
-            ...config,
+        setInputData({
+            ...inputData,
             [field]: e.target.value.trim().toUpperCase(),
         });
     };
@@ -81,8 +78,8 @@ export function ConfigModal(props: IConfigModalProps) {
                                         const parser = new KMLParser();
                                         const positions =
                                             parser.getPositions(kmlString);
-                                        setConfig({
-                                            ...config,
+                                        setInputData({
+                                            ...inputData,
                                             trackPoints: positions,
                                         });
                                     } catch (error) {
@@ -103,8 +100,8 @@ export function ConfigModal(props: IConfigModalProps) {
                     <Switch
                         checked={config.mapOverlayShown}
                         onChange={(e) =>
-                            setConfig({
-                                ...config,
+                            setInputData({
+                                ...inputData,
                                 mapOverlayShown: e.target.checked,
                             })
                         }

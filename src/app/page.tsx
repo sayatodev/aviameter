@@ -14,6 +14,7 @@ import {
 } from "./utils/math";
 import { Pause, PlayArrow } from "@mui/icons-material";
 import FlightPathStore from "./utils/flightPathStore";
+import ConfigStore from "./utils/configStore";
 
 const airportsFetcher: Fetcher<Airport[], string> = (...args) =>
     fetch(...args).then((res) => res.json());
@@ -24,6 +25,7 @@ const airportIsValid = (airport: Airport) =>
 const airportIsSized = (airport: Airport) => airport.size === "large";
 
 const flightPathStore = new FlightPathStore();
+const configStore = new ConfigStore();
 
 export default function Home() {
     const [running, setRunning] = useState(false);
@@ -35,12 +37,7 @@ export default function Home() {
         data?: Airport;
         distance: number;
     }>();
-    const [config, setConfig] = useState<AviameterConfig>({
-        departureAirport: "",
-        arrivalAirport: "",
-        trackPoints: [],
-        mapOverlayShown: false,
-    });
+    const [config, setConfig] = useState<AviameterConfig>();
     const [flightPath, setFlightPath] = useState<FlightPath>({
         trackPoints: [],
     });
@@ -62,15 +59,16 @@ export default function Home() {
 
     const { data: airportsData } = useSWR(`/airports.json`, airportsFetcher);
 
-    // Initialize flight path store
+    // Initialize stores
     useEffect(() => {
         flightPathStore.setStorage(localStorage);
-    }, []);
+        configStore.setStorage(localStorage);
 
-    // Load flight path from local storage
-    useEffect(() => {
+        // Load data from local storage
         const storedFlightPath = flightPathStore.getFlightPath();
         setFlightPath(storedFlightPath);
+        const storedConfig = configStore.getConfig();
+        setConfig(storedConfig);
     }, []);
 
     // Update flight track point
@@ -143,9 +141,16 @@ export default function Home() {
         return () => clearTimeout(timeout);
     });
 
+    // Callbacks
     const clearFlightPathData = () => {
         flightPathStore.clearFlightPath();
         setFlightPath({ trackPoints: [] });
+    };
+
+    const updateConfig = (newConfig: AviameterConfig) => {
+        if (!config) return; // Prevent updating if config is not initialized
+        configStore.setConfig(newConfig);
+        setConfig(newConfig);
     };
 
     return (
@@ -184,7 +189,7 @@ export default function Home() {
                 </div>
                 <div>
                     Estimated Time of Arrival:&nbsp;
-                    {config.trackPoints.length > 0 ? (
+                    {config && config.trackPoints.length > 0 ? (
                         (estimateTimeOfArrival(
                             flightPath.trackPoints,
                             config.trackPoints,
@@ -281,11 +286,14 @@ export default function Home() {
                     </Alert>
                 </Snackbar>
 
-                <ConfigModal
-                    open={configModalOpen}
-                    onClose={() => setConfigModalOpen(false)}
-                    onUpdate={setConfig}
-                />
+                {config && (
+                    <ConfigModal
+                        config={config}
+                        open={configModalOpen}
+                        onClose={() => setConfigModalOpen(false)}
+                        onUpdate={updateConfig}
+                    />
+                )}
             </div>
 
             {/* Navigation Bar */}
