@@ -10,7 +10,7 @@ export interface IConfigModalProps {
 
 export function ConfigModal(props: IConfigModalProps) {
     const [config, setConfig] = useState<AviameterConfig>({
-        depatureAirport: "",
+        departureAirport: "",
         arrivalAirport: "",
         trackPoints: [],
         mapOverlayShown: false,
@@ -44,9 +44,9 @@ export function ConfigModal(props: IConfigModalProps) {
                     <TextField
                         label="Departure Airport"
                         variant="outlined"
-                        value={config.depatureAirport}
+                        value={config.departureAirport}
                         onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            handleInputChange(e, "depatureAirport")
+                            handleInputChange(e, "departureAirport")
                         }
                         className="flex-1"
                     />

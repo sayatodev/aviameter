@@ -36,7 +36,7 @@ export default function Home() {
         distance: number;
     }>();
     const [config, setConfig] = useState<AviameterConfig>({
-        depatureAirport: "",
+        departureAirport: "",
         arrivalAirport: "",
         trackPoints: [],
         mapOverlayShown: false,

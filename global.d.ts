@@ -11,7 +11,7 @@ interface Airport {
 }
 
 type AviameterConfig = {
-    depatureAirport?: string;
+    departureAirport?: string;
     arrivalAirport?: string;
     trackPoints: TrackPoint[];
     mapOverlayShown: boolean;

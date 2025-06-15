@@ -94,7 +94,7 @@ export default function Map(props: IMapProps) {
                     color = "green";
                     radius = 6;
                 }
-                if (airport.iata === props.config.depatureAirport) {
+                if (airport.iata === props.config.departureAirport) {
                     color = "red";
                     radius = 6;
                 }
