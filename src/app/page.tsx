@@ -135,6 +135,12 @@ export default function Home() {
                         setGpsErrored(true);
                         setRunning(false);
                     },
+
+                    {
+                        /* getCurrentPosition options */
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                    }
                 );
             }
         }, 1000);
