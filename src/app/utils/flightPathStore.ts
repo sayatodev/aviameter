@@ -3,14 +3,18 @@ export default class FlightPathStore {
 
     constructor() {}
 
+    checkStorage(): asserts this is this & { storage: Storage } {
+        if (!this.storage) {
+            throw new Error("Storage not set. Call setStorage() first.");
+        }
+    }
+
     setStorage(storage: Storage): void {
         this.storage = storage;
     }
 
     getFlightPath(): FlightPath {
-        if (!this.storage) {
-            throw new Error("Storage not set. Call setStorage() first.");
-        }
+        this.checkStorage();
         const flightPath = this.storage.getItem("flightPath");
         if (flightPath) {
             return JSON.parse(flightPath);
@@ -19,26 +23,21 @@ export default class FlightPathStore {
     }
 
     addTrackPoint(point: TrackPoint): void {
-        if (!this.storage) {
-            throw new Error("Storage not set. Call setStorage() first.");
-        }
+        this.checkStorage();
         const flightPath = this.getFlightPath();
         flightPath.trackPoints.push(point);
         this.storage.setItem("flightPath", JSON.stringify(flightPath));
     }
 
     clearFlightPath(): void {
-        if (!this.storage) {
-            throw new Error("Storage not set. Call setStorage() first.");
-        }
+        this.checkStorage();
         this.storage.removeItem("flightPath");
     }
 
     exportJSON(): void {
-        let flightPath = window.localStorage.getItem("flightPath");
-        if (!flightPath) {
-            flightPath = JSON.stringify({ trackPoints: [] });
-        }
+        this.checkStorage();
+        const flightPath =
+            this.storage.getItem("flightPath") ?? "{ trackPoints: [] }";
 
         const blob = new Blob([flightPath], { type: "application/json" });
         const url = URL.createObjectURL(blob);
