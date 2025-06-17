@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useRef, useState } from "react";
-import { ArrowUpDown, Option } from "lucide-react";
+import { ArrowUpDown, Settings2 } from "lucide-react";
 import {
     Dialog,
     DialogClose,
@@ -112,8 +112,8 @@ export function ConfigModal() {
         <Dialog open={open} onOpenChange={setOpen}>
             <Form {...form}>
                 <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)}>
-                    <DialogTrigger asChild>
-                        <Option />
+                    <DialogTrigger asChild className="cursor-pointer">
+                        <Settings2 />
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px] z-1010">
                         <DialogHeader>

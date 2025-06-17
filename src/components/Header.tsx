@@ -15,7 +15,7 @@ export function Header() {
     return (
         <header className="bg-slate-600 text-white p-4 shadow-lg grid grid-cols-8 gap-4 rounded-b-2xl -mb-2 fixed w-full z-1000">
             <Sheet>
-                <SheetTrigger asChild>
+                <SheetTrigger asChild className="cursor-pointer">
                     <Menu />
                 </SheetTrigger>
                 <SheetContent side="left" className="z-1020">
