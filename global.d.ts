@@ -1,19 +1,32 @@
-interface Airport {
+interface AirportBasic {
     iata: string;
-    lon: string;
-    iso: string;
-    status: number;
     name: string;
+    status: number;
     continent: string;
     type: string;
-    lat: string;
     size: string;
+    iso: string;
 }
+
+interface AirportRaw extends AirportBasic {
+    lon: string;
+    lat: string;
+}
+
+type Airport = AirportBasic & {
+    key: string;
+    label: string;
+    lat: number;
+    lon: number;
+};
 
 type AviameterConfig = {
     departureAirport?: string;
     arrivalAirport?: string;
-    trackPoints: TrackPoint[];
+    referenceTrack: {
+        name: string;
+        flightPath: FlightPath;
+    };
     mapOverlayShown: boolean;
 };
 
@@ -30,5 +43,5 @@ type Point = {
 };
 
 type FlightPath = {
-    trackPoints: Array<TrackPoint>;
+    trackPoints: TrackPoint[];
 };

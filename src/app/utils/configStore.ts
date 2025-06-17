@@ -16,14 +16,19 @@ export default class ConfigStore {
     getConfig(): AviameterConfig {
         this.checkStorage();
         const config = this.storage.getItem("config");
-        console.debug("ConfigStore.getConfig", config);
+        // console.debug("ConfigStore.getConfig", config);
         if (config) {
             return JSON.parse(config);
         }
         return {
             departureAirport: "",
             arrivalAirport: "",
-            trackPoints: [],
+            referenceTrack: {
+                name: "",
+                flightPath: {
+                    trackPoints: [],
+                },
+            },
             mapOverlayShown: false,
         };
     }

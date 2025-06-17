@@ -38,4 +38,23 @@ export class KMLParser {
         console.log("Parsed positions:", positions);
         return positions;
     }
+
+    static processFile(file: File): Promise<TrackPoint[]> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const kmlString = event.target?.result as string;
+                    const parser = new KMLParser();
+                    const positions = parser.getPositions(kmlString);
+                    resolve(positions);
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            reader.onerror = (error) => reject(error);
+            reader.readAsText(file);
+        });
+    }
 }
+

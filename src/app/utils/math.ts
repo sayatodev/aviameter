@@ -231,7 +231,7 @@ export function estimateTimeOfArrival(
         currentPoint.timestamp +
             (remainingTimeBase + currentSegmentRemainingTimeBase) * factor,
     );
-    
+
     // console.debug(
     //     `estStartToPrev: ${estStartToPrev} seconds\n`,
     //     `refStartToPrev: ${refStartToPrev} seconds\n`,
@@ -255,3 +255,7 @@ export function estimateTimeOfArrival(
 
     return estimatedTime;
 }
+
+export const M_to_NM = (x: number) => x * 0.000539957;
+export const M_to_FT = (x: number) => x * 3.28084;
+export const MPS_TO_KTS = (x: number) => x * 1.94384449;
