@@ -119,7 +119,7 @@ export function ConfigModal() {
                         <DialogHeader>
                             <DialogTitle>Configurations</DialogTitle>
                         </DialogHeader>
-                        <Accordion type="multiple" className="w-full">
+                        <Accordion type="multiple" className="w-full min-w-0">
                             <AccordionItem value="flight-route">
                                 <AccordionTrigger className="text-lg">
                                     Flight Route
