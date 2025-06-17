@@ -112,7 +112,7 @@ export function ConfigModal() {
         <Dialog open={open} onOpenChange={setOpen}>
             <Form {...form}>
                 <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)}>
-                    <DialogTrigger asChild className="cursor-pointer">
+                    <DialogTrigger asChild className="cursor-pointer ml-auto">
                         <Settings2 />
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px] z-1010">
