@@ -1,3 +1,17 @@
+import z from "zod";
+
+export const defaultConfig: AviameterConfig = {
+    departureAirport: "",
+    arrivalAirport: "",
+    referenceTrack: {
+        name: "",
+        flightPath: {
+            trackPoints: [],
+        },
+    },
+    mapOverlayShown: false,
+};
+
 export default class ConfigStore {
     storage?: Storage;
 
@@ -18,19 +32,32 @@ export default class ConfigStore {
         const config = this.storage.getItem("config");
         // console.debug("ConfigStore.getConfig", config);
         if (config) {
+            const configSchema: z.ZodSchema<AviameterConfig> = z.object({
+                departureAirport: z.string().optional(),
+                arrivalAirport: z.string().optional(),
+                referenceTrack: z.object({
+                    name: z.string(),
+                    flightPath: z.object({
+                        trackPoints: z.array(
+                            z.object({
+                                lat: z.number(),
+                                lon: z.number(),
+                                alt: z.number(),
+                                timestamp: z.number(),
+                            }),
+                        ),
+                    }),
+                }),
+                mapOverlayShown: z.boolean(),
+            });
+            if (!configSchema.safeParse(JSON.parse(config)).success) {
+                console.warn("Invalid config format, resetting to default.");
+                this.setConfig(defaultConfig);
+                return defaultConfig;
+            }
             return JSON.parse(config);
         }
-        return {
-            departureAirport: "",
-            arrivalAirport: "",
-            referenceTrack: {
-                name: "",
-                flightPath: {
-                    trackPoints: [],
-                },
-            },
-            mapOverlayShown: false,
-        };
+        return defaultConfig;
     }
 
     setConfig(config: AviameterConfig): void {
