@@ -1,13 +1,59 @@
 import { AirportsContext } from "@/contexts/airports";
 import { ConfigContext } from "@/contexts/config";
 import { StatisticsContext } from "@/contexts/statistics";
-import { M_to_FT } from "@/utils/units";
+import { type LengthUnit, type SpeedUnit, Length } from "@/utils/units";
 import { JSX, useContext, useEffect, useState } from "react";
+
+function StatisticsValueSection<
+    T extends "speed" | "length",
+    U extends T extends "speed" ? SpeedUnit : LengthUnit,
+    V extends
+        | {
+              to: (unit: U, precision?: number) => number;
+          }
+        | undefined,
+>({
+    title,
+    value,
+    aviationUnit,
+    metricUnit,
+    unitsSystem = "aviation",
+    precision = 1,
+    span = 2,
+}: {
+    title: string;
+    value: V;
+    aviationUnit: U;
+    metricUnit: U;
+    unitsSystem?: "aviation" | "metric";
+    precision?: number;
+    span?: 1 | 2 | 4 | 6 | 8;
+}) {
+    return (
+        <StatisticsSection
+            title={title}
+            value={
+                unitsSystem === "aviation" ? (
+                    <>
+                        {value ? value.to(aviationUnit, precision) : "--"}{" "}
+                        {aviationUnit}
+                    </>
+                ) : (
+                    <>
+                        {value ? value.to(metricUnit, precision) : "--"}{" "}
+                        {metricUnit}
+                    </>
+                )
+            }
+            span={span}
+        />
+    );
+}
 
 function StatisticsSection({
     title,
     value,
-    span,
+    span = 2,
 }: {
     title: string;
     value: string | number | JSX.Element;
@@ -21,8 +67,8 @@ function StatisticsSection({
         8: "col-span-8",
     };
     return (
-        <div className={spans[span ?? 1]}>
-            <div className="bg-slate-300 p-2 rounded-sm">
+        <div className={`${spans[span ?? 1]}`}>
+            <div className="bg-slate-300 h-full p-2 rounded-sm">
                 <p className="text-xs text-slate-800">{title}</p>
                 <span className="text-md text-black">{value}</span>
             </div>
@@ -36,31 +82,34 @@ export function StatisticsPane() {
     const { config } = useContext(ConfigContext);
 
     const { coords } = statistics.position ?? {};
-    const { referenceTrack, arrivalAirport } = config ?? {};
+    const { referenceTrack, arrivalAirport, units } = config ?? {};
+    const altitude = coords?.altitude ? new Length(coords.altitude) : undefined;
 
     return (
         <div className="bg-slate-600 text-white p-4 pt-8 -mb-2 absolute w-full h-full z-1000">
             <div className="grid grid-cols-8 gap-2">
-                <StatisticsSection
+                <StatisticsValueSection
                     title="Speed"
-                    value={`${statistics.speed?.kts(1) ?? "--"} kts`}
-                    span={2}
+                    value={statistics.speed}
+                    aviationUnit="kt"
+                    metricUnit="km/h"
+                    unitsSystem={units}
                 />
-                <StatisticsSection
+                <StatisticsValueSection
                     title="V/S"
-                    value={`${statistics.verticalSpeed?.fpm(1) ?? "--"} fpm`}
-                    span={2}
+                    value={statistics.verticalSpeed}
+                    aviationUnit="fpm"
+                    metricUnit="m/s"
+                    unitsSystem={units}
                 />
-                <StatisticsSection
+                <StatisticsValueSection
                     title="Altitude"
-                    value={`${coords?.altitude ? M_to_FT(coords?.altitude ?? 0).toFixed(1) : "--"} ft`}
-                    span={2}
+                    value={altitude}
+                    aviationUnit="ft"
+                    metricUnit="m"
+                    unitsSystem={units}
                 />
-                <StatisticsSection
-                    title="UTC Time"
-                    value={<Clock />}
-                    span={2}
-                />
+                <StatisticsSection title="UTC Time" value={<Clock />} />
                 <StatisticsSection
                     title="Flight Status"
                     value={
@@ -92,12 +141,13 @@ export function StatisticsPane() {
                             )}
                             <br />
                             {statistics.distanceToDestination ? (
-                                `${statistics.distanceToDestination.nm(
-                                    1,
-                                )} NM to ${
+                                (units === "aviation"
+                                    ? statistics.distanceToDestination.nm(1)
+                                    : statistics.distanceToDestination.km(1)) +
+                                (units === "aviation" ? " nm" : " km") +
+                                ` to ${
                                     airports.find(
-                                        (airport) =>
-                                            airport.key === arrivalAirport,
+                                        ({ key }) => key === arrivalAirport,
                                     )?.name ?? arrivalAirport
                                 }`
                             ) : config?.arrivalAirport ? (

@@ -10,6 +10,7 @@ export const defaultConfig: AviameterConfig = {
         },
     },
     mapOverlayShown: false,
+    units: "aviation",
 };
 
 export default class ConfigStore {
@@ -49,6 +50,7 @@ export default class ConfigStore {
                     }),
                 }),
                 mapOverlayShown: z.boolean(),
+                units: z.enum(["aviation", "metric"]),
             });
             if (!configSchema.safeParse(JSON.parse(config)).success) {
                 console.warn("Invalid config format, resetting to default.");

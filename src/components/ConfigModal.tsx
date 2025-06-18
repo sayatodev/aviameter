@@ -17,7 +17,7 @@ import { Button } from "./ui/button";
 import { AirportInput } from "./AirportInput";
 import z from "zod";
 import { useForm } from "react-hook-form";
-import { Form, FormField } from "./ui/form";
+import { Form, FormControl, FormField } from "./ui/form";
 import {
     Accordion,
     AccordionContent,
@@ -28,6 +28,14 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { KMLParser } from "@/utils/kmlParser";
 import { toast } from "sonner";
+import { Switch } from "./ui/switch";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "./ui/select";
 
 const configFormSchema = z.object({
     departureAirport: z
@@ -45,6 +53,7 @@ const configFormSchema = z.object({
         file: z.instanceof(File).optional(),
     }),
     mapOverlayShown: z.boolean(),
+    units: z.enum(["metric", "aviation"]),
 });
 export type ConfigFormSchema = z.infer<typeof configFormSchema>;
 
@@ -63,6 +72,7 @@ export function ConfigModal() {
                 name: config?.referenceTrack?.name ?? "(None)",
             },
             mapOverlayShown: config?.mapOverlayShown ?? false,
+            units: config?.units ?? "aviation",
         },
     });
 
@@ -78,6 +88,7 @@ export function ConfigModal() {
                 },
             },
             mapOverlayShown: values.mapOverlayShown,
+            units: values.units,
         };
         if (values.referenceTrack.file) {
             // Wait for file to be processed
@@ -222,6 +233,70 @@ export function ConfigModal() {
                                                         );
                                                     }}
                                                 />
+                                            </div>
+                                        )}
+                                    />
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="display-options">
+                                <AccordionTrigger className="text-lg">
+                                    Display Options
+                                </AccordionTrigger>
+                                <AccordionContent className="flex flex-col gap-3">
+                                    <FormField
+                                        control={form.control}
+                                        name="mapOverlayShown"
+                                        render={({ field }) => (
+                                            <div className="flex items-center space-x-2">
+                                                <div className="flex items-center space-x-2">
+                                                    <FormControl>
+                                                        <Switch
+                                                            id="airplane-mode"
+                                                            checked={
+                                                                field.value
+                                                            }
+                                                            onChange={
+                                                                field.onChange
+                                                            }
+                                                        />
+                                                    </FormControl>
+                                                    <Label htmlFor="airplane-mode">
+                                                        Map overlay
+                                                    </Label>
+                                                </div>
+                                            </div>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="units"
+                                        render={({ field }) => (
+                                            <div className="flex items-center space-x-2">
+                                                <Label htmlFor="units">
+                                                    Units
+                                                </Label>
+                                                <Select
+                                                    onValueChange={
+                                                        field.onChange
+                                                    }
+                                                    defaultValue={field.value}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select unit system..." />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent className="z-1011">
+                                                        <SelectItem value="aviation">
+                                                            Aviation (knots,
+                                                            feet)
+                                                        </SelectItem>
+                                                        <SelectItem value="metric">
+                                                            Metric (km/h,
+                                                            meters)
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                         )}
                                     />

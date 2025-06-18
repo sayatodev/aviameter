@@ -50,6 +50,7 @@ export default function Map(props: IMapProps) {
 
     // Config
     const config = props.config;
+    const { units } = config ?? {};
 
     return worldData ? (
         <div className="w-full h-full">
@@ -57,18 +58,26 @@ export default function Map(props: IMapProps) {
                 <div className="z-1000 left-0 top-0 absolute m-5 bg-slate-800 rounded-lg opacity-70 p-3 flex gap-3">
                     <div className="flex flex-col text-white justify-center items-center">
                         <p className="text-xs font-semibold">SPD</p>
-                        <span className="text-lg">{speed?.kts(1)} kts</span>
+                        <span className="text-lg">
+                            {units === "aviation"
+                                ? speed?.kt(1) + " kt"
+                                : speed?.kmh(1) + " km/h"}
+                        </span>
                     </div>
                     <div className="flex flex-col text-white justify-center items-center">
                         <p className="text-xs font-semibold">ALT</p>
                         <span className="text-lg">
-                            {M_to_FT(altitude).toFixed(1)} ft
+                            {units === "aviation"
+                                ? M_to_FT(altitude).toFixed(1) + " ft"
+                                : altitude.toFixed(1) + " m"}
                         </span>
                     </div>
                     <div className="flex flex-col text-white justify-center items-center">
                         <p className="text-xs font-semibold">V/S</p>
                         <span className="text-lg">
-                            {verticalSpeed?.fpm(1)} fpm
+                            {units === "aviation"
+                                ? verticalSpeed?.fpm(1) + " fpm"
+                                : verticalSpeed?.SI(1) + " m/s"}
                         </span>
                     </div>
                 </div>

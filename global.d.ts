@@ -28,6 +28,7 @@ type AviameterConfig = {
         flightPath: FlightPath;
     };
     mapOverlayShown: boolean;
+    units: "aviation" | "metric";
 };
 
 type TrackPoint = {
