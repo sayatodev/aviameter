@@ -1,6 +1,7 @@
 import type { Fetcher } from "swr";
 import { calculateHaversineDistance } from "./math";
 import { uniqueBy } from "./helpers";
+import { Length } from "./units";
 
 // SWR Fetcher for airports.json
 export const airportsFetcher: Fetcher<AirportRaw[], string> = (...args) =>
@@ -16,7 +17,7 @@ export const airportIsSized = (airport: Airport) => airport.size === "large";
 export function getNearestAirport(
     position: GeolocationPosition,
     airports?: Airport[],
-): { airport: Airport; distance: number } | null {
+): { airport: Airport; distance: Length } | null {
     if (!airports || airports.length === 0) return null;
 
     const airportDistanceMap = airports
@@ -30,7 +31,7 @@ export function getNearestAirport(
                 position.coords.longitude,
             ),
         }))
-        .sort((a, b) => a.distance - b.distance);
+        .sort((a, b) => a.distance.value - b.distance.value);
 
     return airportDistanceMap[0] || null;
 }

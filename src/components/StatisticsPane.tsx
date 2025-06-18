@@ -1,7 +1,7 @@
-import { M_to_FT, M_to_NM } from "@/utils/math";
 import { AirportsContext } from "@/contexts/airports";
 import { ConfigContext } from "@/contexts/config";
 import { StatisticsContext } from "@/contexts/statistics";
+import { M_to_FT } from "@/utils/units";
 import { JSX, useContext, useEffect, useState } from "react";
 
 function StatisticsSection({
@@ -41,12 +41,12 @@ export function StatisticsPane() {
             <div className="grid grid-cols-8 gap-2">
                 <StatisticsSection
                     title="Speed"
-                    value={`${statistics.speed?.toFixed(1)} kts`}
+                    value={`${statistics.speed?.kts(1)} kts`}
                     span={2}
                 />
                 <StatisticsSection
                     title="V/S"
-                    value={`${statistics.verticalSpeed?.toFixed(1)} fpm`}
+                    value={`${statistics.verticalSpeed?.fpm(1)} fpm`}
                     span={2}
                 />
                 <StatisticsSection
@@ -78,9 +78,9 @@ export function StatisticsPane() {
                             )}
                             <br />
                             {statistics.distanceToDestination ? (
-                                `${M_to_NM(
-                                    statistics.distanceToDestination,
-                                ).toFixed(1)} NM to ${
+                                `${statistics.distanceToDestination.nm(
+                                    1,
+                                )} NM to ${
                                     airports.find(
                                         (airport) =>
                                             airport.key === arrivalAirport,

@@ -9,17 +9,18 @@ import {
 } from "@/utils/math";
 import { ConfigContext } from "./config";
 import FlightPathStore from "@/utils/flightPathStore";
+import { Length, Speed } from "@/utils/units";
 
 type Statistics = {
     position?: GeolocationPosition;
     recentPositions: GeolocationPosition[];
-    nearestAirport: { airport: Airport; distance: number } | null;
-    speed?: number;
-    verticalSpeed?: number;
+    nearestAirport: { airport: Airport; distance: Length } | null;
+    speed?: Speed;
+    verticalSpeed?: Speed;
     gpsErrored: boolean;
     eta: Date | null;
     flightPath: FlightPath;
-    distanceToDestination?: number | null;
+    distanceToDestination?: Length | null;
 };
 
 const flightPathStore = new FlightPathStore();

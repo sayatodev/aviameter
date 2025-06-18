@@ -1,6 +1,8 @@
-export function calculateMeanSpeed(positions: GeolocationPosition[]): number {
+import { Length, Speed } from "./units";
+
+export function calculateMeanSpeed(positions: GeolocationPosition[]): Speed {
     if (!positions || positions.length < 2) {
-        return 0;
+        return new Speed(0);
     }
 
     const speeds: number[] = [];
@@ -23,7 +25,7 @@ export function calculateMeanSpeed(positions: GeolocationPosition[]): number {
 
         if (timeDiff > 0) {
             // Speed in meters per second
-            const speed = distance / timeDiff;
+            const speed = distance.value / timeDiff;
             speeds.push(speed);
         } else {
             speeds.push(0);
@@ -32,10 +34,10 @@ export function calculateMeanSpeed(positions: GeolocationPosition[]): number {
 
     // Calculate mean speed
     if (speeds.length === 0) {
-        return 0;
+        return new Speed(0);
     }
     const totalSpeed = speeds.reduce((sum, speed) => sum + speed, 0);
-    return (totalSpeed / speeds.length) * 1.94384; // m/s to kts
+    return new Speed(totalSpeed / speeds.length);
 }
 
 export function calculateHaversineDistance(
@@ -43,7 +45,7 @@ export function calculateHaversineDistance(
     lon1: number,
     lat2: number,
     lon2: number,
-): number {
+): Length {
     const R = 6371000; // Earth radius in meters
     const phi1 = (lat1 * Math.PI) / 180;
     const phi2 = (lat2 * Math.PI) / 180;
@@ -58,14 +60,14 @@ export function calculateHaversineDistance(
             Math.sin(deltaLambda / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c; // Distance in meters
+    return new Length(R * c);
 }
 
 export function calculateMeanVertSpeed(
     positions: GeolocationPosition[],
-): number {
+): Speed {
     if (!positions || positions.length < 2) {
-        return 0;
+        return new Speed(0);
     }
 
     const vertSpeeds: number[] = [];
@@ -92,10 +94,10 @@ export function calculateMeanVertSpeed(
 
     // Calculate mean v/s
     if (vertSpeeds.length === 0) {
-        return 0;
+        return new Speed(0);
     }
     const totalSpeed = vertSpeeds.reduce((sum, speed) => sum + speed, 0);
-    return (totalSpeed / vertSpeeds.length) * 196.850394; // m/s to fpm
+    return new Speed(totalSpeed / vertSpeeds.length);
 }
 
 function getNearestPoint(
@@ -117,7 +119,7 @@ function getNearestPoint(
         );
         return { point, distance };
     });
-    distances.sort((a, b) => a.distance - b.distance);
+    distances.sort((a, b) => a.distance.value - b.distance.value);
 
     if (distances.length <= result_offset) {
         console.warn("No points found after offset");
@@ -133,7 +135,7 @@ function getNearestPoint(
     return nearestPoint;
 }
 
-function getDistance(point1: Point, point2: Point): number {
+function getDistance(point1: Point, point2: Point): Length {
     return calculateHaversineDistance(
         point1.lat,
         point1.lon,
@@ -214,7 +216,8 @@ export function estimateTimeOfArrival(
     const segmentDistance = getDistance(refPrevPoint, refNextPoint);
 
     const currentSegmentProgress =
-        getDistance(projectionOnSegment, refPrevPoint) / segmentDistance;
+        getDistance(projectionOnSegment, refPrevPoint).value /
+        segmentDistance.value;
     const currentSegmentRemainingTimeBase =
         segmentTimeLength * (1 - currentSegmentProgress);
 
@@ -255,7 +258,3 @@ export function estimateTimeOfArrival(
 
     return estimatedTime;
 }
-
-export const M_to_NM = (x: number) => x * 0.000539957;
-export const M_to_FT = (x: number) => x * 3.28084;
-export const MPS_TO_KTS = (x: number) => x * 1.94384449;

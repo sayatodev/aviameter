@@ -10,9 +10,10 @@ import {
     Polyline,
     Popup,
 } from "react-leaflet";
-import { calculateHaversineDistance, M_to_NM } from "@/utils/math";
+import { calculateHaversineDistance } from "@/utils/math";
 import { useContext } from "react";
 import { StatisticsContext } from "@/contexts/statistics";
+import { M_to_FT } from "@/utils/units";
 
 const geojsonFetcher: Fetcher<GeoJSONProps["data"], string> = (...args) =>
     fetch(...args).then((res) => res.json());
@@ -45,18 +46,18 @@ export default function Map(props: IMapProps) {
                 <div className="z-1000 left-0 top-0 absolute m-5 bg-slate-800 rounded-lg opacity-70 p-3 flex gap-3">
                     <div className="flex flex-col text-white justify-center items-center">
                         <p className="text-xs font-semibold">SPD</p>
-                        <span className="text-lg">{speed?.toFixed(1)} kts</span>
+                        <span className="text-lg">{speed?.kts(1)} kts</span>
                     </div>
                     <div className="flex flex-col text-white justify-center items-center">
                         <p className="text-xs font-semibold">ALT</p>
                         <span className="text-lg">
-                            {(altitude * 3.28084).toFixed(1)} ft
+                            {M_to_FT(altitude).toFixed(1)} ft
                         </span>
                     </div>
                     <div className="flex flex-col text-white justify-center items-center">
                         <p className="text-xs font-semibold">V/S</p>
                         <span className="text-lg">
-                            {verticalSpeed?.toFixed(1)} fpm
+                            {verticalSpeed?.fpm(1)} fpm
                         </span>
                     </div>
                 </div>
@@ -120,14 +121,12 @@ export default function Map(props: IMapProps) {
                                     </div>
                                     <br />
                                     <div className="italic text-xs text-center">
-                                        {M_to_NM(
-                                            calculateHaversineDistance(
-                                                currentCoords?.latitude ?? 0,
-                                                currentCoords?.longitude ?? 0,
-                                                airport.lat,
-                                                airport.lon,
-                                            ),
-                                        ).toFixed(1)}
+                                        {calculateHaversineDistance(
+                                            currentCoords?.latitude ?? 0,
+                                            currentCoords?.longitude ?? 0,
+                                            airport.lat,
+                                            airport.lon,
+                                        ).nm(1)}
                                         &nbsp;nm
                                     </div>
                                 </Popup>
