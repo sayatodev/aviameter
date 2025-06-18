@@ -143,7 +143,10 @@ export function ConfigModal() {
                         <DialogHeader>
                             <DialogTitle>Configurations</DialogTitle>
                         </DialogHeader>
-                        <Accordion type="multiple" className="w-full min-w-0 max-h-[calc(100vh-200px)] overflow-y-auto">
+                        <Accordion
+                            type="multiple"
+                            className="w-full min-w-0 max-h-[calc(100vh-200px)] overflow-y-auto"
+                        >
                             <AccordionItem value="flight-route">
                                 <AccordionTrigger className="text-lg">
                                     Flight Route
@@ -246,21 +249,21 @@ export function ConfigModal() {
                                     <FormField
                                         control={form.control}
                                         name="mapOverlayShown"
-                                        render={({ field }) => (
+                                        render={({
+                                            field: { value, onChange },
+                                        }) => (
                                             <div className="flex items-center space-x-2">
                                                 <div className="flex items-center space-x-2">
                                                     <FormControl>
                                                         <Switch
-                                                            id="airplane-mode"
-                                                            checked={
-                                                                field.value
+                                                            checked={value}
+                                                            onCheckedChange={
+                                                                onChange
                                                             }
-                                                            onChange={
-                                                                field.onChange
-                                                            }
+                                                            className="cursor-pointer"
                                                         />
                                                     </FormControl>
-                                                    <Label htmlFor="airplane-mode">
+                                                    <Label htmlFor="mapOverlayShown">
                                                         Map overlay
                                                     </Label>
                                                 </div>
