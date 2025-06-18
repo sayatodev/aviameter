@@ -10,6 +10,7 @@ import {
 import { ConfigContext } from "./config";
 import FlightPathStore from "@/utils/flightPathStore";
 import { Length, Speed } from "@/utils/units";
+import { toast } from "sonner";
 
 type Statistics = {
     position?: GeolocationPosition;
@@ -66,6 +67,12 @@ export const StatisticsProvider = ({
 
         if ("geolocation" in navigator) {
             console.log("Starting GPS watchPosition...");
+            /* Trigger initial position fetch */
+            navigator.geolocation.getCurrentPosition(setPosition, (error) => {
+                console.error("Geolocation error:", error);
+                toast.error("Failed to get GPS position.");
+            });
+            /* Initialize watcher */
             const watcher = navigator.geolocation.watchPosition(
                 (position) => {
                     setPosition(position);
@@ -129,7 +136,7 @@ export const StatisticsProvider = ({
                         timestamp: pos.timestamp,
                     })),
                 },
-                distanceToDestination: config?.arrivalAirport
+                distanceToDestination: arrivalAirport
                     ? calculateHaversineDistance(
                           position.coords.latitude,
                           position.coords.longitude,

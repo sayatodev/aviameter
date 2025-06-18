@@ -9,9 +9,10 @@ import {
     Circle,
     Polyline,
     Popup,
+    useMap,
 } from "react-leaflet";
 import { calculateHaversineDistance } from "@/utils/math";
-import { useContext } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { StatisticsContext } from "@/contexts/statistics";
 import { M_to_FT } from "@/utils/units";
 
@@ -26,6 +27,9 @@ interface IMapProps {
 }
 
 export default function Map(props: IMapProps) {
+    const locationFocused = useRef(false);
+    const [center, setCenter] = useState<[number, number]>([0, 0]);
+
     const statistics = useContext(StatisticsContext);
     const { data: worldData } = useSWR("/planet.geo.json", geojsonFetcher);
 
@@ -36,6 +40,13 @@ export default function Map(props: IMapProps) {
     const currentLat = currentCoords?.latitude ?? 0;
     const currentLong = currentCoords?.longitude ?? 0;
     const altitude = currentCoords?.altitude ?? 0;
+
+    useEffect(() => {
+        if (!locationFocused.current && displayLocation) {
+            setCenter([currentLat, currentLong]);
+            locationFocused.current = true;
+        }
+    }, [displayLocation, currentLat, currentLong]);
 
     // Config
     const config = props.config;
@@ -70,6 +81,8 @@ export default function Map(props: IMapProps) {
                     zoomControl={false}
                     attributionControl={false}
                 >
+                    <ChangeView center={center} />
+
                     <GeoJSON
                         data={worldData}
                         style={{ fillColor: "#deebd8", color: "#a0a89d" }}
@@ -160,4 +173,15 @@ export default function Map(props: IMapProps) {
     ) : (
         <>Loading Map...</>
     );
+}
+
+function ChangeView({ center }: { center: [number, number] }) {
+    const map = useMap();
+    useEffect(() => {
+        if (center) {
+            map.setView(center, map.getZoom());
+        }
+    }, [center, map]);
+
+    return null;
 }

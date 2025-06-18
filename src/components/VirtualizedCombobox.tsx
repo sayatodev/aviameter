@@ -139,7 +139,6 @@ const VirtualizedCommand = ({
                 ref={parentRef}
                 style={{
                     height: height,
-                    width: "100%",
                     overflow: "auto",
                 }}
                 onMouseDown={() => setIsKeyboardNavActive(false)}
@@ -248,17 +247,21 @@ export function VirtualizedCombobox<
                             !field.value && "text-muted-foreground",
                         )}
                     >
-                        <div className="flex-1 shrink-1 min-w-0 overflow-hidden text-ellipsis">{field.value
-                            ? options.find(
-                                  (option) => option.value === field.value,
-                              )?.label
-                            : searchPlaceholder}
-                            </div>
+                        <div className="flex-1 shrink-1 min-w-0 overflow-hidden text-ellipsis">
+                            {field.value
+                                ? options.find(
+                                      (option) => option.value === field.value,
+                                  )?.label
+                                : searchPlaceholder}
+                        </div>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-full max-w-fit text-nowrap overflow-hidden text-ellipsis p-0 z-1011">
+            <PopoverContent
+                className="w-[calc(100vw-4rem)] max-w-none md:w-[400px] text-nowrap overflow-hidden text-ellipsis p-0 z-1011"
+                side="bottom"
+            >
                 <VirtualizedCommand
                     height={height}
                     options={options}

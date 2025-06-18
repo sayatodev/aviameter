@@ -34,24 +34,26 @@ export function StatisticsPane() {
     const statistics = useContext(StatisticsContext);
     const airports = useContext(AirportsContext);
     const { config } = useContext(ConfigContext);
+
+    const { coords } = statistics.position ?? {};
     const { referenceTrack, arrivalAirport } = config ?? {};
-    console.log("StatisticsPane statistics:", statistics);
+
     return (
         <div className="bg-slate-600 text-white p-4 pt-8 -mb-2 absolute w-full h-full z-1000">
             <div className="grid grid-cols-8 gap-2">
                 <StatisticsSection
                     title="Speed"
-                    value={`${statistics.speed?.kts(1)} kts`}
+                    value={`${statistics.speed?.kts(1) ?? "--"} kts`}
                     span={2}
                 />
                 <StatisticsSection
                     title="V/S"
-                    value={`${statistics.verticalSpeed?.fpm(1)} fpm`}
+                    value={`${statistics.verticalSpeed?.fpm(1) ?? "--"} fpm`}
                     span={2}
                 />
                 <StatisticsSection
                     title="Altitude"
-                    value={`${M_to_FT(statistics.position?.coords.altitude ?? 0).toFixed(1)} ft`}
+                    value={`${coords?.altitude ? M_to_FT(coords?.altitude ?? 0).toFixed(1) : "--"} ft`}
                     span={2}
                 />
                 <StatisticsSection
@@ -63,6 +65,14 @@ export function StatisticsPane() {
                     title="Flight Status"
                     value={
                         <>
+                            {statistics.gpsErrored && (
+                                <>
+                                    <span className="text-rose-800 text-sm">
+                                        GPS Error
+                                    </span>
+                                    <br />
+                                </>
+                            )}
                             {statistics.eta ? (
                                 `ETA $
                             {statistics.eta.toLocaleTimeString()}`
@@ -70,6 +80,10 @@ export function StatisticsPane() {
                                   .length ? (
                                 <span className="text-slate-600 text-sm">
                                     Load previous flight track log for ETA
+                                </span>
+                            ) : (coords?.altitude ?? 0) < 100 ? (
+                                <span className="text-slate-600 text-sm">
+                                    On ground
                                 </span>
                             ) : (
                                 <span className="text-slate-600 text-sm">
@@ -103,12 +117,10 @@ export function StatisticsPane() {
                 <StatisticsSection
                     title="Position"
                     value={
-                        statistics.position ? (
-                            `${statistics.position.coords.latitude.toFixed(
+                        coords ? (
+                            `${coords.latitude.toFixed(
                                 4,
-                            )}, ${statistics.position.coords.longitude.toFixed(
-                                4,
-                            )}`
+                            )}, ${coords.longitude.toFixed(4)}`
                         ) : (
                             <span className="text-slate-600 text-sm">
                                 Waiting for GPS signal...

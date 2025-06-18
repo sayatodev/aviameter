@@ -3904,6 +3904,11 @@ negotiator@^1.0.0:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-1.0.0.tgz#b6c91bb47172d69f93cfd7c357bbb529019b5f6a"
   integrity sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==
 
+next-themes@^0.4.6:
+  version "0.4.6"
+  resolved "https://registry.yarnpkg.com/next-themes/-/next-themes-0.4.6.tgz#8d7e92d03b8fea6582892a50a928c9b23502e8b6"
+  integrity sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==
+
 next@15.3.2:
   version "15.3.2"
   resolved "https://registry.yarnpkg.com/next/-/next-15.3.2.tgz#97510629e38a058dd154782a5c2ec9c9ab94d0d8"
@@ -4753,6 +4758,11 @@ sisteransi@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/sisteransi/-/sisteransi-1.0.5.tgz#134d681297756437cc05ca01370d3a7a571075ed"
   integrity sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==
+
+sonner@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/sonner/-/sonner-2.0.5.tgz#ffb70a6ffe3207c4302cffd3ee46a25242953477"
+  integrity sha512-YwbHQO6cSso3HBXlbCkgrgzDNIhws14r4MO87Ofy+cV2X7ES4pOoAK3+veSmVTvqNx1BWUxlhPmZzP00Crk2aQ==
 
 source-map-js@^1.0.2, source-map-js@^1.2.1:
   version "1.2.1"

@@ -27,16 +27,19 @@ import {
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { KMLParser } from "@/utils/kmlParser";
+import { toast } from "sonner";
 
 const configFormSchema = z.object({
     departureAirport: z
         .string()
         .min(3, "IATA code must be at least 3 characters")
-        .optional(),
+        .optional()
+        .or(z.literal("")),
     arrivalAirport: z
         .string()
         .min(3, "IATA code must be at least 3 characters")
-        .optional(),
+        .optional()
+        .or(z.literal("")),
     referenceTrack: z.object({
         name: z.string(),
         file: z.instanceof(File).optional(),
@@ -87,6 +90,16 @@ export function ConfigModal() {
                 },
                 (error) => {
                     console.error("Error processing KML file:", error);
+                    toast.error("Could not process KML file", {
+                        className: "z-1011",
+                        action: {
+                            label: "View guide",
+                            onClick: () => {
+                                window.open("/guide", "_blank")?.focus();
+                            },
+                        },
+                        position: "top-center",
+                    });
                 },
             );
         } else {
