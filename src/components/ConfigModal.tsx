@@ -143,7 +143,7 @@ export function ConfigModal() {
                         <DialogHeader>
                             <DialogTitle>Configurations</DialogTitle>
                         </DialogHeader>
-                        <Accordion type="multiple" className="w-full min-w-0">
+                        <Accordion type="multiple" className="w-full min-w-0 max-h-[calc(100vh-200px)] overflow-y-auto">
                             <AccordionItem value="flight-route">
                                 <AccordionTrigger className="text-lg">
                                     Flight Route
