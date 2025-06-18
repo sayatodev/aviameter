@@ -4,10 +4,10 @@ import dynamic from "next/dynamic";
 import {
     airportIsSized,
     airportIsValid,
-} from "../utils/airportsHelper";
+} from "../../utils/airportsHelper";
 
-import FlightPathStore from "../utils/flightPathStore";
-import ConfigStore from "../utils/configStore";
+import FlightPathStore from "../../utils/flightPathStore";
+import ConfigStore from "../../utils/configStore";
 import { ConfigContext } from "@/contexts/config";
 import { AirportsContext } from "@/contexts/airports";
 

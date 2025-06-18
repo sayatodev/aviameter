@@ -1,4 +1,4 @@
-import { getNearestAirport } from "@/app/utils/airportsHelper";
+import { getNearestAirport } from "@/utils/airportsHelper";
 import { createContext, useContext, useEffect, useState } from "react";
 import { AirportsContext } from "./airports";
 import {
@@ -6,9 +6,9 @@ import {
     calculateMeanSpeed,
     calculateMeanVertSpeed,
     estimateTimeOfArrival,
-} from "@/app/utils/math";
+} from "@/utils/math";
 import { ConfigContext } from "./config";
-import FlightPathStore from "@/app/utils/flightPathStore";
+import FlightPathStore from "@/utils/flightPathStore";
 
 type Statistics = {
     position?: GeolocationPosition;

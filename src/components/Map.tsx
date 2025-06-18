@@ -10,7 +10,7 @@ import {
     Polyline,
     Popup,
 } from "react-leaflet";
-import { calculateHaversineDistance, M_to_NM } from "@/app/utils/math";
+import { calculateHaversineDistance, M_to_NM } from "@/utils/math";
 import { useContext } from "react";
 import { StatisticsContext } from "@/contexts/statistics";
 

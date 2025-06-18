@@ -1,4 +1,4 @@
-import { M_to_FT, M_to_NM } from "@/app/utils/math";
+import { M_to_FT, M_to_NM } from "@/utils/math";
 import { AirportsContext } from "@/contexts/airports";
 import { ConfigContext } from "@/contexts/config";
 import { StatisticsContext } from "@/contexts/statistics";

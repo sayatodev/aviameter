@@ -9,9 +9,9 @@ import {
 } from "@/components/ui/resizable";
 import { ConfigContext } from "@/contexts/config";
 import { useEffect, useState } from "react";
-import ConfigStore from "../utils/configStore";
+import ConfigStore from "../../utils/configStore";
 import { AirportsContext } from "@/contexts/airports";
-import { airportsFetcher, standardizeAirports } from "../utils/airportsHelper";
+import { airportsFetcher, standardizeAirports } from "../../utils/airportsHelper";
 import useSWR from "swr";
 import { StatisticsProvider } from "@/contexts/statistics";
 

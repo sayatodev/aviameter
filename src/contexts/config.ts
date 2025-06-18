@@ -1,4 +1,4 @@
-import ConfigStore from "@/app/utils/configStore";
+import ConfigStore from "@/utils/configStore";
 import { createContext } from "react";
 
 export const ConfigContext = createContext<{

@@ -26,7 +26,7 @@ import {
 } from "./ui/accordion";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { KMLParser } from "@/app/utils/kmlParser";
+import { KMLParser } from "@/utils/kmlParser";
 
 const configFormSchema = z.object({
     departureAirport: z
