@@ -136,7 +136,7 @@ export function ConfigModal() {
         <Dialog open={open} onOpenChange={setOpen}>
             <Form {...form}>
                 <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)}>
-                    <DialogTrigger asChild className="cursor-pointer ml-auto">
+                    <DialogTrigger asChild className="ml-auto cursor-pointer">
                         <Settings2 />
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px] z-1010">
@@ -148,7 +148,7 @@ export function ConfigModal() {
                             className="w-full min-w-0 max-h-[calc(100vh-200px)] overflow-y-auto"
                         >
                             <AccordionItem value="flight-route">
-                                <AccordionTrigger className="text-lg">
+                                <AccordionTrigger className="text-lg focus-visible:ring-0 focus-visible:bg-slate-200 focus-visible:px-2">
                                     Flight Route
                                 </AccordionTrigger>
                                 <AccordionContent className="flex flex-col gap-3">
@@ -203,8 +203,11 @@ export function ConfigModal() {
                                     </div>
                                 </AccordionContent>
                             </AccordionItem>
-                            <AccordionItem value="reference-track">
-                                <AccordionTrigger className="text-lg">
+                            <AccordionItem
+                                value="reference-track"
+                                className="m-1"
+                            >
+                                <AccordionTrigger className="text-lg focus-visible:ring-0 focus-visible:bg-slate-200 focus-visible:px-2">
                                     Reference Track
                                 </AccordionTrigger>
                                 <AccordionContent className="flex flex-col gap-3">
@@ -227,6 +230,7 @@ export function ConfigModal() {
                                                     id="referenceTrackFileInput"
                                                     type="file"
                                                     accept=".kml"
+                                                    className="cursor-pointer"
                                                     onChange={(event) => {
                                                         onChange(
                                                             event.target
@@ -241,8 +245,11 @@ export function ConfigModal() {
                                     />
                                 </AccordionContent>
                             </AccordionItem>
-                            <AccordionItem value="display-options">
-                                <AccordionTrigger className="text-lg">
+                            <AccordionItem
+                                value="display-options"
+                                className="m-1"
+                            >
+                                <AccordionTrigger className="text-lg focus-visible:ring-0 focus-visible:bg-slate-200 focus-visible:px-2">
                                     Display Options
                                 </AccordionTrigger>
                                 <AccordionContent className="flex flex-col gap-3">
@@ -260,7 +267,6 @@ export function ConfigModal() {
                                                             onCheckedChange={
                                                                 onChange
                                                             }
-                                                            className="cursor-pointer"
                                                         />
                                                     </FormControl>
                                                     <Label htmlFor="mapOverlayShown">
@@ -290,11 +296,15 @@ export function ConfigModal() {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent className="z-1011">
-                                                        <SelectItem value="aviation">
+                                                        <SelectItem
+                                                            value="aviation"
+                                                        >
                                                             Aviation (knots,
                                                             feet)
                                                         </SelectItem>
-                                                        <SelectItem value="metric">
+                                                        <SelectItem
+                                                            value="metric"
+                                                        >
                                                             Metric (km/h,
                                                             meters)
                                                         </SelectItem>
@@ -308,7 +318,11 @@ export function ConfigModal() {
                         </Accordion>
                         <DialogFooter>
                             <DialogClose asChild>
-                                <Button variant="outline">Cancel</Button>
+                                <Button
+                                    variant="outline"
+                                >
+                                    Cancel
+                                </Button>
                             </DialogClose>
                             <Button
                                 type="submit"
