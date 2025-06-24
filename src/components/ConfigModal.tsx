@@ -36,6 +36,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "./ui/select";
+import { CacheModal } from "./CacheModal";
 
 const configFormSchema = z.object({
     departureAirport: z
@@ -296,15 +297,11 @@ export function ConfigModal() {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent className="z-1011">
-                                                        <SelectItem
-                                                            value="aviation"
-                                                        >
+                                                        <SelectItem value="aviation">
                                                             Aviation (knots,
                                                             feet)
                                                         </SelectItem>
-                                                        <SelectItem
-                                                            value="metric"
-                                                        >
+                                                        <SelectItem value="metric">
                                                             Metric (km/h,
                                                             meters)
                                                         </SelectItem>
@@ -315,14 +312,18 @@ export function ConfigModal() {
                                     />
                                 </AccordionContent>
                             </AccordionItem>
+                            <AccordionItem value="cache">
+                                <AccordionTrigger className="text-lg focus-visible:ring-0 focus-visible:bg-slate-200 focus-visible:px-2">
+                                    Cache
+                                </AccordionTrigger>
+                                <AccordionContent className="flex flex-col gap-3">
+                                    <CacheModal />
+                                </AccordionContent>
+                            </AccordionItem>
                         </Accordion>
                         <DialogFooter>
                             <DialogClose asChild>
-                                <Button
-                                    variant="outline"
-                                >
-                                    Cancel
-                                </Button>
+                                <Button variant="outline">Cancel</Button>
                             </DialogClose>
                             <Button
                                 type="submit"

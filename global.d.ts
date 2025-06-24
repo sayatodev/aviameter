@@ -31,6 +31,12 @@ type AviameterConfig = {
     units: "aviation" | "metric";
 };
 
+type RouteName = "mainApp" | "airportMap" | "guide";
+type AviameterManifest = {
+    cacheName: string;
+    routes: Record<RouteName, string[]>;
+}
+
 type TrackPoint = {
     lat: number;
     lon: number;
