@@ -2,6 +2,7 @@ import useSWR, { type Fetcher } from "swr";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 const manifestFetcher: Fetcher<AviameterManifest, string> = (...args) =>
     fetch(...args).then((res) => res.json());
@@ -29,6 +30,7 @@ async function downloadAllFiles(manifest?: AviameterManifest) {
 
     await Promise.all(promises);
     console.log("All files downloaded and cached.");
+    toast("All files downloaded and cached successfully.");
 }
 
 async function checkCache(cacheName: string, files: string[]) {
@@ -99,7 +101,11 @@ export function CacheModal() {
                 <Button
                     variant="outline"
                     className="mt-4"
-                    onClick={() => downloadAllFiles(manifest)}
+                    onClick={() =>
+                        downloadAllFiles(manifest).then(() => {
+                            setCacheStatus(cacheStatus);
+                        })
+                    }
                 >
                     Download All Files
                 </Button>
