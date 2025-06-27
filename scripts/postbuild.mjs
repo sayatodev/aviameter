@@ -78,7 +78,7 @@ for (const routeName in ROUTES) {
 
     const componentChunks = [];
     for (const component of route.components) {
-        const files = componentManifest[component].files.map(
+        const files = componentManifest[component]?.files.map(
             (path) => `/_next/${path}`,
         );
         componentChunks.push(...files);
