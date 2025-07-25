@@ -11,7 +11,7 @@ function StatisticsValueSection<
         | {
               to: (unit: U, precision?: number) => number;
           }
-        | undefined,
+        | undefined
 >({
     title,
     value,
@@ -123,8 +123,7 @@ export function StatisticsPane() {
                                 </>
                             )}
                             {statistics.eta ? (
-                                `ETA $
-                            {statistics.eta.toLocaleTimeString()}`
+                                `ETA ${statistics.eta.toLocaleTimeString()}`
                             ) : !referenceTrack?.flightPath.trackPoints
                                   .length ? (
                                 <span className="text-slate-600 text-sm">
@@ -147,7 +146,7 @@ export function StatisticsPane() {
                                 (units === "aviation" ? " nm" : " km") +
                                 ` to ${
                                     airports.find(
-                                        ({ key }) => key === arrivalAirport,
+                                        ({ key }) => key === arrivalAirport
                                     )?.name ?? arrivalAirport
                                 }`
                             ) : config?.arrivalAirport ? (
@@ -169,7 +168,7 @@ export function StatisticsPane() {
                     value={
                         coords ? (
                             `${coords.latitude.toFixed(
-                                4,
+                                4
                             )}, ${coords.longitude.toFixed(4)}`
                         ) : (
                             <span className="text-slate-600 text-sm">
@@ -184,7 +183,7 @@ export function StatisticsPane() {
                     value={
                         statistics.position
                             ? new Date(
-                                  statistics.position.timestamp,
+                                  statistics.position.timestamp
                               ).toLocaleTimeString()
                             : "N/A"
                     }
