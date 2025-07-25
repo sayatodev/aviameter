@@ -148,7 +148,7 @@ export function ConfigModal() {
                             type="multiple"
                             className="w-full min-w-0 max-h-[calc(100vh-200px)] overflow-y-auto"
                         >
-                            <AccordionItem value="flight-route">
+                            <AccordionItem value="flight-route" className="m-1">
                                 <AccordionTrigger className="text-lg focus-visible:ring-0 focus-visible:bg-slate-200 focus-visible:px-2">
                                     Flight Route
                                 </AccordionTrigger>
@@ -312,7 +312,7 @@ export function ConfigModal() {
                                     />
                                 </AccordionContent>
                             </AccordionItem>
-                            <AccordionItem value="cache">
+                            <AccordionItem value="cache" className="m-1">
                                 <AccordionTrigger className="text-lg focus-visible:ring-0 focus-visible:bg-slate-200 focus-visible:px-2">
                                     Cache
                                 </AccordionTrigger>
