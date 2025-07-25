@@ -235,8 +235,10 @@ export function VirtualizedCombobox<
         setValue: (name: Path<TSchema>, value: string) => void;
     }
 >) {
+    const [popoverOpen, setPopoverOpen] = React.useState(false);
+
     return (
-        <Popover>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
                 <FormControl>
                     <Button
@@ -269,6 +271,7 @@ export function VirtualizedCombobox<
                     selectedOption={field.value}
                     onSelectOption={(currentValue) => {
                         form.setValue(field.name, currentValue);
+                        setPopoverOpen(false);
                     }}
                 />
             </PopoverContent>
