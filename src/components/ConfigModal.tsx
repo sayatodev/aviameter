@@ -131,6 +131,7 @@ export function ConfigModal() {
             config?.referenceTrack?.name ?? "(None)",
         );
         form.setValue("mapOverlayShown", config?.mapOverlayShown ?? false);
+        form.setValue("units", config?.units ?? "aviation");
     }, [config, form]);
 
     return (
